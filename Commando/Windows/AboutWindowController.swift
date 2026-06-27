@@ -20,7 +20,7 @@ final class AboutWindowController: NSWindowController {
 
     private init() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 380, height: 340),
+            contentRect: NSRect(x: 0, y: 0, width: 380, height: 380),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false

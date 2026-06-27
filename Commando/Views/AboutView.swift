@@ -3,6 +3,7 @@
 //  Commando
 //
 
+import AppKit
 import SwiftUI
 
 struct AboutView: View {
@@ -21,6 +22,13 @@ struct AboutView: View {
             Text("Version \(version)")
                 .foregroundColor(.secondary)
 
+            Button(action: openCompanyWebsite) {
+                Text("Manticore Software")
+                    .font(.system(size: 12))
+                    .foregroundColor(.accentColor)
+            }
+            .buttonStyle(PlainButtonStyle())
+
             Text("Run saved command sets from your menu bar. Chain shell steps locally or over SSH, and open them in your preferred terminal app.")
                 .font(.body)
                 .multilineTextAlignment(.center)
@@ -33,6 +41,27 @@ struct AboutView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
+
+            HStack(spacing: 12) {
+                Button(action: { openURL(AppInfo.privacyURL) }) {
+                    Text("Privacy Policy")
+                        .font(.caption)
+                        .foregroundColor(.accentColor)
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                Text("·")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
+                Button(action: { openURL(AppInfo.termsURL) }) {
+                    Text("Terms of Use")
+                        .font(.caption)
+                        .foregroundColor(.accentColor)
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+            .padding(.top, 4)
         }
         .padding(32)
         .frame(width: 380)
@@ -53,5 +82,13 @@ struct AboutView: View {
                         .foregroundColor(.accentColor)
                 )
         }
+    }
+
+    private func openCompanyWebsite() {
+        openURL(AppInfo.companyURL)
+    }
+
+    private func openURL(_ url: URL) {
+        NSWorkspace.shared.open(url)
     }
 }

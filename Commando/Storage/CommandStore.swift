@@ -7,6 +7,32 @@ import Foundation
 
 private let commandSetsKey = "commandSets"
 private let legacyServerCommandsKey = "serverCommandsV2"
+private let exampleCommandSetRemovedKey = "exampleCommandSetRemoved"
+
+enum ExampleCommandSet {
+    static let id = UUID(uuidString: "E0000000-0000-4000-8000-C00000000001")!
+
+    static var helloWorld: CommandSet {
+        CommandSet(
+            id: id,
+            name: "Hello World",
+            steps: ["echo 'Hello, World!'"]
+        )
+    }
+
+    static func installIfNeeded() {
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: exampleCommandSetRemovedKey) else { return }
+        guard defaults.commandSets.isEmpty else { return }
+
+        defaults.commandSets = [helloWorld]
+    }
+
+    static func markRemovedIfNeeded(_ id: UUID) {
+        guard id == self.id else { return }
+        UserDefaults.standard.set(true, forKey: exampleCommandSetRemovedKey)
+    }
+}
 
 extension UserDefaults {
 

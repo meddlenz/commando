@@ -11,6 +11,16 @@ class SettingsWindowController: NSWindowController {
     private static var sharedInstance: SettingsWindowController?
 
     static func show() {
+        if let instance = sharedInstance, let window = instance.window, window.isVisible {
+            if window.isMiniaturized {
+                window.deminiaturize(nil)
+            }
+            instance.showWindow(nil)
+            window.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+
         sharedInstance?.close()
         sharedInstance = SettingsWindowController()
         sharedInstance?.showWindow(nil)

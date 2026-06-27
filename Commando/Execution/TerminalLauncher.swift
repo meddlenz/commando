@@ -35,17 +35,45 @@ enum TerminalLauncher {
             throw LaunchError.appNotFound(appPath)
         }
 
-        let scriptURL = try writeCommandScript(command: command, commandSetName: commandSetName)
         let bundleId = Bundle(path: appPath)?.bundleIdentifier
 
         switch bundleId {
         case "com.apple.Terminal":
-            try runInTerminal(scriptURL: scriptURL)
+            try runInTerminal(command: command, commandSetName: commandSetName)
         case "com.googlecode.iterm2":
-            try runInITerm(scriptURL: scriptURL)
+            try runInITerm(command: command, commandSetName: commandSetName)
         default:
+            let scriptURL = try writeCommandScript(command: command, commandSetName: commandSetName)
             try openScript(inAppAt: appPath, scriptURL: scriptURL)
         }
+    }
+
+    private static func inlineShellCommand(command: String, commandSetName: String) -> String {
+        let script = wrappedCommand(command, commandSetName: commandSetName)
+        let scriptBase64 = Data(script.utf8).base64EncodedString()
+        return "/bin/bash -lc \"echo '\(scriptBase64)' | base64 -d | /bin/bash\""
+    }
+
+    private static func runInTerminal(command: String, commandSetName: String) throws {
+        let shellCommand = appleScriptEscape(inlineShellCommand(command: command, commandSetName: commandSetName))
+        let source = """
+        tell application "Terminal"
+            activate
+            do script "\(shellCommand)"
+        end tell
+        """
+        try runAppleScript(source, failurePrefix: "Failed to open Terminal")
+    }
+
+    private static func runInITerm(command: String, commandSetName: String) throws {
+        let shellCommand = appleScriptEscape(inlineShellCommand(command: command, commandSetName: commandSetName))
+        let source = """
+        tell application "iTerm"
+            activate
+            set newWindow to (create window with default profile command "\(shellCommand)")
+        end tell
+        """
+        try runAppleScript(source, failurePrefix: "Failed to open iTerm")
     }
 
     static func wrappedCommand(_ command: String, commandSetName: String) -> String {
@@ -88,28 +116,6 @@ enum TerminalLauncher {
         try scriptBody.write(to: url, atomically: true, encoding: .utf8)
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: url.path)
         return url
-    }
-
-    private static func runInTerminal(scriptURL: URL) throws {
-        let path = appleScriptEscape(scriptURL.path)
-        let source = """
-        tell application "Terminal"
-            activate
-            do script "/bin/bash " & quoted form of "\(path)"
-        end tell
-        """
-        try runAppleScript(source, failurePrefix: "Failed to open Terminal")
-    }
-
-    private static func runInITerm(scriptURL: URL) throws {
-        let path = appleScriptEscape(scriptURL.path)
-        let source = """
-        tell application "iTerm"
-            activate
-            set newWindow to (create window with default profile command "/bin/bash " & quoted form of "\(path)")
-        end tell
-        """
-        try runAppleScript(source, failurePrefix: "Failed to open iTerm")
     }
 
     private static func openScript(inAppAt appPath: String, scriptURL: URL) throws {

@@ -15,7 +15,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         ProcessInfo.processInfo.disableAutomaticTermination("Commando menu bar item")
 
+        ExampleCommandSet.installIfNeeded()
         applyDockIconPreference()
+        UpdateChecker.checkForUpdateIfNeeded()
 
         NotificationCenter.default.addObserver(
             self,
@@ -36,6 +38,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
         false
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        SettingsWindowController.show()
+        return true
     }
 
     @objc private func commandSetsDidChange(_ notification: Notification) {

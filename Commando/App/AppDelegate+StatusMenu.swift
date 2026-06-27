@@ -11,7 +11,7 @@ extension AppDelegate {
         if let button = statusItem.button {
             let image = statusBarImage()
             image.size = NSSize(width: 18, height: 18)
-            image.isTemplate = true
+            image.isTemplate = MenuBarIconSettings.selectedOption.usesTemplateRendering
             button.image = image
         }
 

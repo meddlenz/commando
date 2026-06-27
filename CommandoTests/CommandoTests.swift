@@ -178,4 +178,35 @@ class CommandoTests: XCTestCase {
         XCTAssertTrue(wrapped.contains("ls"))
         XCTAssertTrue(wrapped.contains("exec \"$user_shell\" -l"))
     }
+
+    func testExampleCommandSetContent() {
+        let example = ExampleCommandSet.helloWorld
+        XCTAssertEqual(example.id, ExampleCommandSet.id)
+        XCTAssertEqual(example.name, "Hello World")
+        XCTAssertEqual(example.nonEmptySteps, ["echo 'Hello, World!'"])
+    }
+
+    func testMarkRemovedIfNeededSetsFlag() {
+        let key = "exampleCommandSetRemoved"
+        UserDefaults.standard.removeObject(forKey: key)
+        defer { UserDefaults.standard.removeObject(forKey: key) }
+
+        ExampleCommandSet.markRemovedIfNeeded(UUID())
+        XCTAssertFalse(UserDefaults.standard.bool(forKey: key))
+
+        ExampleCommandSet.markRemovedIfNeeded(ExampleCommandSet.id)
+        XCTAssertTrue(UserDefaults.standard.bool(forKey: key))
+    }
+
+    func testExampleCommandSetDoesNotReinstallAfterRemoval() {
+        let removedKey = "exampleCommandSetRemoved"
+        UserDefaults.standard.set(true, forKey: removedKey)
+        defer { UserDefaults.standard.removeObject(forKey: removedKey) }
+
+        ExampleCommandSet.installIfNeeded()
+
+        if UserDefaults.standard.commandSets.contains(where: { $0.id == ExampleCommandSet.id }) {
+            XCTFail("Example command set should not install after removal flag is set")
+        }
+    }
 }

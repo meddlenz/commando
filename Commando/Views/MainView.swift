@@ -396,7 +396,9 @@ struct MainView: View {
 
     private func deleteCommandSets(at offsets: IndexSet) {
         for index in offsets {
-            KeychainCredentialStore.deletePassword(for: commandSets[index].id)
+            let id = commandSets[index].id
+            ExampleCommandSet.markRemovedIfNeeded(id)
+            KeychainCredentialStore.deletePassword(for: id)
         }
         commandSets.remove(atOffsets: offsets)
         UserDefaults.standard.commandSets = commandSets
@@ -409,6 +411,7 @@ struct MainView: View {
     private func deleteEditingCommandSet() {
         guard let editingID,
               let index = commandSets.firstIndex(where: { $0.id == editingID }) else { return }
+        ExampleCommandSet.markRemovedIfNeeded(editingID)
         KeychainCredentialStore.deletePassword(for: editingID)
         commandSets.remove(at: index)
         UserDefaults.standard.commandSets = commandSets

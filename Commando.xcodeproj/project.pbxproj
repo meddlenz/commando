@@ -8,16 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		171A9C5C2A86F94C00B4DC63 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171A9C5B2A86F94C00B4DC63 /* AppDelegate.swift */; };
-		CR3CMD012A86F94C00B4DC63 /* CommandSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3CMD002A86F94C00B4DC63 /* CommandSet.swift */; };
-		CR3CMD032A86F94C00B4DC63 /* CommandStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3CMD022A86F94C00B4DC63 /* CommandStore.swift */; };
-		CR3CMD052A86F94C00B4DC63 /* CommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3CMD042A86F94C00B4DC63 /* CommandExecutor.swift */; };
-		CR3KCH012A86F94C00B4DC63 /* KeychainCredentialStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3KCH002A86F94C00B4DC63 /* KeychainCredentialStore.swift */; };
-		CR3SSH012A86F94C00B4DC63 /* SSHShellCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3SSH002A86F94C00B4DC63 /* SSHShellCommand.swift */; };
-		CR3SSH032A86F94C00B4DC63 /* SSHKeySetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3SSH022A86F94C00B4DC63 /* SSHKeySetup.swift */; };
-		CR3SSH052A86F94C00B4DC63 /* SSHKeySetupPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3SSH042A86F94C00B4DC63 /* SSHKeySetupPrompt.swift */; };
-		CR3TRM012A86F94C00B4DC63 /* TerminalAppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3TRM002A86F94C00B4DC63 /* TerminalAppSettings.swift */; };
-		CR3MBI012A86F94C00B4DC63 /* MenuBarIconSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3MBI002A86F94C00B4DC63 /* MenuBarIconSettings.swift */; };
-		CR3TL012A86F94C00B4DC63 /* TerminalLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3TL002A86F94C00B4DC63 /* TerminalLauncher.swift */; };
 		171A9C602A86F94C00B4DC63 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 171A9C5F2A86F94C00B4DC63 /* Assets.xcassets */; };
 		171A9C632A86F94C00B4DC63 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 171A9C622A86F94C00B4DC63 /* Preview Assets.xcassets */; };
 		171A9C662A86F94C00B4DC63 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 171A9C642A86F94C00B4DC63 /* Main.storyboard */; };
@@ -25,21 +15,32 @@
 		171A9C7D2A86F94D00B4DC63 /* CommandoUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171A9C7C2A86F94D00B4DC63 /* CommandoUITests.swift */; };
 		171A9C8B2A86FB4F00B4DC63 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171A9C8A2A86FB4F00B4DC63 /* MainView.swift */; };
 		171A9C8D2A87010400B4DC63 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171A9C8C2A87010400B4DC63 /* SettingsWindowController.swift */; };
-		CR3PRW012A86F94C00B4DC63 /* PreferencesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3PRW002A86F94C00B4DC63 /* PreferencesWindowController.swift */; };
-		CR3LAL012A86F94C00B4DC63 /* LaunchAtLoginSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LAL002A86F94C00B4DC63 /* LaunchAtLoginSettings.swift */; };
-		CR3DCK012A86F94C00B4DC63 /* DockIconSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3DCK002A86F94C00B4DC63 /* DockIconSettings.swift */; };
 		CR3ABV012A86F94C00B4DC63 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3ABV002A86F94C00B4DC63 /* AboutView.swift */; };
 		CR3ABW012A86F94C00B4DC63 /* AboutWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3ABW002A86F94C00B4DC63 /* AboutWindowController.swift */; };
 		CR3APP022A86F94C00B4DC63 /* AppDelegate+StatusMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3APP012A86F94C00B4DC63 /* AppDelegate+StatusMenu.swift */; };
 		CR3APP042A86F94C00B4DC63 /* AppDelegate+Actions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3APP032A86F94C00B4DC63 /* AppDelegate+Actions.swift */; };
+		CR3CMD012A86F94C00B4DC63 /* CommandSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3CMD002A86F94C00B4DC63 /* CommandSet.swift */; };
+		CR3CMD032A86F94C00B4DC63 /* CommandStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3CMD022A86F94C00B4DC63 /* CommandStore.swift */; };
+		CR3CMD052A86F94C00B4DC63 /* CommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3CMD042A86F94C00B4DC63 /* CommandExecutor.swift */; };
+		CR3DCK012A86F94C00B4DC63 /* DockIconSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3DCK002A86F94C00B4DC63 /* DockIconSettings.swift */; };
+		CR3KCH012A86F94C00B4DC63 /* KeychainCredentialStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3KCH002A86F94C00B4DC63 /* KeychainCredentialStore.swift */; };
+		CR3LAL012A86F94C00B4DC63 /* LaunchAtLoginSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LAL002A86F94C00B4DC63 /* LaunchAtLoginSettings.swift */; };
+		CR3MBI012A86F94C00B4DC63 /* MenuBarIconSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3MBI002A86F94C00B4DC63 /* MenuBarIconSettings.swift */; };
 		CR3MOD022A86F94C00B4DC63 /* SSHConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3MOD012A86F94C00B4DC63 /* SSHConnection.swift */; };
 		CR3MOD042A86F94C00B4DC63 /* SSHStepParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3MOD032A86F94C00B4DC63 /* SSHStepParser.swift */; };
 		CR3MOD062A86F94C00B4DC63 /* AppInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3MOD052A86F94C00B4DC63 /* AppInfo.swift */; };
+		CR3PRW012A86F94C00B4DC63 /* PreferencesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3PRW002A86F94C00B4DC63 /* PreferencesWindowController.swift */; };
+		CR3SSH012A86F94C00B4DC63 /* SSHShellCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3SSH002A86F94C00B4DC63 /* SSHShellCommand.swift */; };
+		CR3SSH032A86F94C00B4DC63 /* SSHKeySetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3SSH022A86F94C00B4DC63 /* SSHKeySetup.swift */; };
+		CR3SSH052A86F94C00B4DC63 /* SSHKeySetupPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3SSH042A86F94C00B4DC63 /* SSHKeySetupPrompt.swift */; };
+		CR3TL012A86F94C00B4DC63 /* TerminalLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3TL002A86F94C00B4DC63 /* TerminalLauncher.swift */; };
+		CR3TRM012A86F94C00B4DC63 /* TerminalAppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3TRM002A86F94C00B4DC63 /* TerminalAppSettings.swift */; };
 		CR3VWS022A86F94C00B4DC63 /* SystemIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3VWS012A86F94C00B4DC63 /* SystemIcon.swift */; };
 		CR3VWS042A86F94C00B4DC63 /* CommandSetSidebarRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3VWS032A86F94C00B4DC63 /* CommandSetSidebarRow.swift */; };
 		CR3VWS062A86F94C00B4DC63 /* FormSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3VWS052A86F94C00B4DC63 /* FormSection.swift */; };
 		CR3VWS082A86F94C00B4DC63 /* StepRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3VWS072A86F94C00B4DC63 /* StepRow.swift */; };
 		CR3VWS102A86F94C00B4DC63 /* ValidationBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3VWS092A86F94C00B4DC63 /* ValidationBanner.swift */; };
+		CR3UPD012A86F94C00B4DC63 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3UPD002A86F94C00B4DC63 /* UpdateChecker.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,58 +49,59 @@
 			containerPortal = 171A9C502A86F94C00B4DC63 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 171A9C572A86F94C00B4DC63;
-			remoteInfo = "Commando";
+			remoteInfo = Commando;
 		};
 		171A9C792A86F94D00B4DC63 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 171A9C502A86F94C00B4DC63 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 171A9C572A86F94C00B4DC63;
-			remoteInfo = "Commando";
+			remoteInfo = Commando;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		171A9C582A86F94C00B4DC63 /* Commando.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Commando.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		171A9C582A86F94C00B4DC63 /* Commando.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Commando.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		171A9C5B2A86F94C00B4DC63 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		CR3CMD002A86F94C00B4DC63 /* CommandSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandSet.swift; sourceTree = "<group>"; };
-		CR3CMD022A86F94C00B4DC63 /* CommandStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandStore.swift; sourceTree = "<group>"; };
-		CR3CMD042A86F94C00B4DC63 /* CommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandExecutor.swift; sourceTree = "<group>"; };
-		CR3KCH002A86F94C00B4DC63 /* KeychainCredentialStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainCredentialStore.swift; sourceTree = "<group>"; };
-		CR3SSH002A86F94C00B4DC63 /* SSHShellCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHShellCommand.swift; sourceTree = "<group>"; };
-		CR3SSH022A86F94C00B4DC63 /* SSHKeySetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHKeySetup.swift; sourceTree = "<group>"; };
-		CR3SSH042A86F94C00B4DC63 /* SSHKeySetupPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHKeySetupPrompt.swift; sourceTree = "<group>"; };
-		CR3TRM002A86F94C00B4DC63 /* TerminalAppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalAppSettings.swift; sourceTree = "<group>"; };
-		CR3TL002A86F94C00B4DC63 /* TerminalLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalLauncher.swift; sourceTree = "<group>"; };
 		171A9C5F2A86F94C00B4DC63 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		171A9C622A86F94C00B4DC63 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		171A9C652A86F94C00B4DC63 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		171A9C672A86F94C00B4DC63 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		171A9C682A86F94C00B4DC63 /* Commando.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Commando.entitlements; sourceTree = "<group>"; };
-		171A9C6D2A86F94D00B4DC63 /* CommandoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "CommandoTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		171A9C6D2A86F94D00B4DC63 /* CommandoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CommandoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		171A9C712A86F94D00B4DC63 /* CommandoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandoTests.swift; sourceTree = "<group>"; };
 		171A9C732A86F94D00B4DC63 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		171A9C782A86F94D00B4DC63 /* CommandoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "CommandoUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		171A9C782A86F94D00B4DC63 /* CommandoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CommandoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		171A9C7C2A86F94D00B4DC63 /* CommandoUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandoUITests.swift; sourceTree = "<group>"; };
 		171A9C7E2A86F94D00B4DC63 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		171A9C8A2A86FB4F00B4DC63 /* MainView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainView.swift; sourceTree = "<group>"; };
 		171A9C8C2A87010400B4DC63 /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
-		CR3PRW002A86F94C00B4DC63 /* PreferencesWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesWindowController.swift; sourceTree = "<group>"; };
-		CR3LAL002A86F94C00B4DC63 /* LaunchAtLoginSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginSettings.swift; sourceTree = "<group>"; };
-		CR3DCK002A86F94C00B4DC63 /* DockIconSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockIconSettings.swift; sourceTree = "<group>"; };
-		CR3MBI002A86F94C00B4DC63 /* MenuBarIconSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIconSettings.swift; sourceTree = "<group>"; };
 		CR3ABV002A86F94C00B4DC63 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		CR3ABW002A86F94C00B4DC63 /* AboutWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutWindowController.swift; sourceTree = "<group>"; };
 		CR3APP012A86F94C00B4DC63 /* AppDelegate+StatusMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+StatusMenu.swift"; sourceTree = "<group>"; };
 		CR3APP032A86F94C00B4DC63 /* AppDelegate+Actions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+Actions.swift"; sourceTree = "<group>"; };
+		CR3CMD002A86F94C00B4DC63 /* CommandSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandSet.swift; sourceTree = "<group>"; };
+		CR3CMD022A86F94C00B4DC63 /* CommandStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandStore.swift; sourceTree = "<group>"; };
+		CR3CMD042A86F94C00B4DC63 /* CommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandExecutor.swift; sourceTree = "<group>"; };
+		CR3DCK002A86F94C00B4DC63 /* DockIconSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockIconSettings.swift; sourceTree = "<group>"; };
+		CR3KCH002A86F94C00B4DC63 /* KeychainCredentialStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainCredentialStore.swift; sourceTree = "<group>"; };
+		CR3LAL002A86F94C00B4DC63 /* LaunchAtLoginSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginSettings.swift; sourceTree = "<group>"; };
+		CR3MBI002A86F94C00B4DC63 /* MenuBarIconSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIconSettings.swift; sourceTree = "<group>"; };
 		CR3MOD012A86F94C00B4DC63 /* SSHConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHConnection.swift; sourceTree = "<group>"; };
 		CR3MOD032A86F94C00B4DC63 /* SSHStepParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHStepParser.swift; sourceTree = "<group>"; };
 		CR3MOD052A86F94C00B4DC63 /* AppInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInfo.swift; sourceTree = "<group>"; };
+		CR3PRW002A86F94C00B4DC63 /* PreferencesWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesWindowController.swift; sourceTree = "<group>"; };
+		CR3SSH002A86F94C00B4DC63 /* SSHShellCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHShellCommand.swift; sourceTree = "<group>"; };
+		CR3SSH022A86F94C00B4DC63 /* SSHKeySetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHKeySetup.swift; sourceTree = "<group>"; };
+		CR3SSH042A86F94C00B4DC63 /* SSHKeySetupPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHKeySetupPrompt.swift; sourceTree = "<group>"; };
+		CR3TL002A86F94C00B4DC63 /* TerminalLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalLauncher.swift; sourceTree = "<group>"; };
+		CR3TRM002A86F94C00B4DC63 /* TerminalAppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalAppSettings.swift; sourceTree = "<group>"; };
 		CR3VWS012A86F94C00B4DC63 /* SystemIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemIcon.swift; sourceTree = "<group>"; };
 		CR3VWS032A86F94C00B4DC63 /* CommandSetSidebarRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandSetSidebarRow.swift; sourceTree = "<group>"; };
 		CR3VWS052A86F94C00B4DC63 /* FormSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormSection.swift; sourceTree = "<group>"; };
 		CR3VWS072A86F94C00B4DC63 /* StepRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StepRow.swift; sourceTree = "<group>"; };
 		CR3VWS092A86F94C00B4DC63 /* ValidationBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationBanner.swift; sourceTree = "<group>"; };
+		CR3UPD002A86F94C00B4DC63 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -158,13 +160,40 @@
 				CR3GRP062A86F94C00B4DC63 /* Preferences */,
 				CR3GRP072A86F94C00B4DC63 /* Windows */,
 				CR3GRP082A86F94C00B4DC63 /* Views */,
+				CR3GRP092A86F94C00B4DC63 /* Utilities */,
 				171A9C5F2A86F94C00B4DC63 /* Assets.xcassets */,
 				171A9C642A86F94C00B4DC63 /* Main.storyboard */,
 				171A9C672A86F94C00B4DC63 /* Info.plist */,
 				171A9C682A86F94C00B4DC63 /* Commando.entitlements */,
 				171A9C612A86F94C00B4DC63 /* Preview Content */,
 			);
-			path = "Commando";
+			path = Commando;
+			sourceTree = "<group>";
+		};
+		171A9C612A86F94C00B4DC63 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				171A9C622A86F94C00B4DC63 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		171A9C702A86F94D00B4DC63 /* CommandoTests */ = {
+			isa = PBXGroup;
+			children = (
+				171A9C712A86F94D00B4DC63 /* CommandoTests.swift */,
+				171A9C732A86F94D00B4DC63 /* Info.plist */,
+			);
+			path = CommandoTests;
+			sourceTree = "<group>";
+		};
+		171A9C7B2A86F94D00B4DC63 /* CommandoUITests */ = {
+			isa = PBXGroup;
+			children = (
+				171A9C7C2A86F94D00B4DC63 /* CommandoUITests.swift */,
+				171A9C7E2A86F94D00B4DC63 /* Info.plist */,
+			);
+			path = CommandoUITests;
 			sourceTree = "<group>";
 		};
 		CR3GRP012A86F94C00B4DC63 /* App */ = {
@@ -251,30 +280,12 @@
 			path = Views;
 			sourceTree = "<group>";
 		};
-		171A9C612A86F94C00B4DC63 /* Preview Content */ = {
+		CR3GRP092A86F94C00B4DC63 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
-				171A9C622A86F94C00B4DC63 /* Preview Assets.xcassets */,
+				CR3UPD002A86F94C00B4DC63 /* UpdateChecker.swift */,
 			);
-			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		171A9C702A86F94D00B4DC63 /* CommandoTests */ = {
-			isa = PBXGroup;
-			children = (
-				171A9C712A86F94D00B4DC63 /* CommandoTests.swift */,
-				171A9C732A86F94D00B4DC63 /* Info.plist */,
-			);
-			path = "CommandoTests";
-			sourceTree = "<group>";
-		};
-		171A9C7B2A86F94D00B4DC63 /* CommandoUITests */ = {
-			isa = PBXGroup;
-			children = (
-				171A9C7C2A86F94D00B4DC63 /* CommandoUITests.swift */,
-				171A9C7E2A86F94D00B4DC63 /* Info.plist */,
-			);
-			path = "CommandoUITests";
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -292,8 +303,8 @@
 			);
 			dependencies = (
 			);
-			name = "Commando";
-			productName = "Commando";
+			name = Commando;
+			productName = Commando;
 			productReference = 171A9C582A86F94C00B4DC63 /* Commando.app */;
 			productType = "com.apple.product-type.application";
 		};
@@ -310,8 +321,8 @@
 			dependencies = (
 				171A9C6F2A86F94D00B4DC63 /* PBXTargetDependency */,
 			);
-			name = "CommandoTests";
-			productName = "CommandoTests";
+			name = CommandoTests;
+			productName = CommandoTests;
 			productReference = 171A9C6D2A86F94D00B4DC63 /* CommandoTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
@@ -328,8 +339,8 @@
 			dependencies = (
 				171A9C7A2A86F94D00B4DC63 /* PBXTargetDependency */,
 			);
-			name = "CommandoUITests";
-			productName = "CommandoUITests";
+			name = CommandoUITests;
+			productName = CommandoUITests;
 			productReference = 171A9C782A86F94D00B4DC63 /* CommandoUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
@@ -436,6 +447,7 @@
 				CR3VWS062A86F94C00B4DC63 /* FormSection.swift in Sources */,
 				CR3VWS082A86F94C00B4DC63 /* StepRow.swift in Sources */,
 				CR3VWS102A86F94C00B4DC63 /* ValidationBanner.swift in Sources */,
+				CR3UPD012A86F94C00B4DC63 /* UpdateChecker.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -599,18 +611,34 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = "Commando/Commando.entitlements";
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = Commando/Commando.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Commando/Preview Content\"";
+				DEVELOPMENT_TEAM = 5D3622Q6DB;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = "Commando/Info.plist";
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				INFOPLIST_FILE = Commando/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Commando;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = "manticoresw.Commando";
+				PRODUCT_BUNDLE_IDENTIFIER = manticoresw.Commando;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 			};
@@ -620,18 +648,34 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = "Commando/Commando.entitlements";
+				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = NO;
+				CODE_SIGN_ENTITLEMENTS = Commando/Commando.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Commando/Preview Content\"";
+				DEVELOPMENT_TEAM = 5D3622Q6DB;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
+				ENABLE_OUTGOING_NETWORK_CONNECTIONS = YES;
 				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = "Commando/Info.plist";
+				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = NO;
+				ENABLE_RESOURCE_ACCESS_BLUETOOTH = NO;
+				ENABLE_RESOURCE_ACCESS_CALENDARS = NO;
+				ENABLE_RESOURCE_ACCESS_CAMERA = NO;
+				ENABLE_RESOURCE_ACCESS_CONTACTS = NO;
+				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
+				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
+				ENABLE_RESOURCE_ACCESS_USB = NO;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				INFOPLIST_FILE = Commando/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Commando;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = "manticoresw.Commando";
+				PRODUCT_BUNDLE_IDENTIFIER = manticoresw.Commando;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 			};
@@ -644,14 +688,14 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = "CommandoTests/Info.plist";
+				INFOPLIST_FILE = CommandoTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = "manticoresw.CommandoTests";
+				PRODUCT_BUNDLE_IDENTIFIER = manticoresw.CommandoTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Commando.app/Contents/MacOS/Commando";
@@ -665,14 +709,14 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = "CommandoTests/Info.plist";
+				INFOPLIST_FILE = CommandoTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				PRODUCT_BUNDLE_IDENTIFIER = "manticoresw.CommandoTests";
+				PRODUCT_BUNDLE_IDENTIFIER = manticoresw.CommandoTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Commando.app/Contents/MacOS/Commando";
@@ -685,16 +729,16 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = "CommandoUITests/Info.plist";
+				INFOPLIST_FILE = CommandoUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "manticoresw.CommandoUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = manticoresw.CommandoUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = "Commando";
+				TEST_TARGET_NAME = Commando;
 			};
 			name = Debug;
 		};
@@ -704,16 +748,16 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = "CommandoUITests/Info.plist";
+				INFOPLIST_FILE = CommandoUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "manticoresw.CommandoUITests";
+				PRODUCT_BUNDLE_IDENTIFIER = manticoresw.CommandoUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
-				TEST_TARGET_NAME = "Commando";
+				TEST_TARGET_NAME = Commando;
 			};
 			name = Release;
 		};
