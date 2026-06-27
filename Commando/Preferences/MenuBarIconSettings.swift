@@ -3,6 +3,7 @@
 //  Commando
 //
 
+import AppKit
 import Foundation
 
 enum MenuBarIconSettings {
@@ -63,5 +64,20 @@ enum MenuBarIconSettings {
             UserDefaults.standard.set(newValue.rawValue, forKey: selectedIconKey)
             NotificationCenter.default.post(name: .preferencesDidChange, object: nil)
         }
+    }
+
+    static func previewImage(for option: Option) -> NSImage {
+        let fallback = NSImage(size: NSSize(width: 18, height: 18))
+        guard let image = NSImage(named: NSImage.Name(option.assetName)),
+              image.isValid,
+              image.size.width > 0,
+              image.size.height > 0,
+              let copy = image.copy() as? NSImage else {
+            return fallback
+        }
+
+        copy.size = NSSize(width: 18, height: 18)
+        copy.isTemplate = option.usesTemplateRendering
+        return copy
     }
 }

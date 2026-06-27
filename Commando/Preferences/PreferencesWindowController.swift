@@ -138,6 +138,7 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
     private let launchAtLoginCheckbox = NSButton(checkboxWithTitle: "Launch at login", target: nil, action: nil)
     private let hideDockIconCheckbox = NSButton(checkboxWithTitle: "Hide dock icon", target: nil, action: nil)
     private let menuBarIconLabel = NSTextField(labelWithString: "Menu bar icon:")
+    private let menuBarIconPreview = NSImageView()
     private let menuBarIconPopup = NSPopUpButton(frame: .zero, pullsDown: false)
     private let menuBarIconStack = NSStackView()
     private let helpLabel = NSTextField(labelWithString: "When hidden, Commando runs from the menu bar only.")
@@ -182,12 +183,16 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
             menuBarIconPopup.lastItem?.representedObject = option.rawValue
         }
 
+        menuBarIconPreview.imageScaling = .scaleProportionallyUpOrDown
+        menuBarIconPreview.translatesAutoresizingMaskIntoConstraints = false
+
         menuBarIconStack.orientation = .horizontal
         menuBarIconStack.alignment = .centerY
         menuBarIconStack.distribution = .fill
         menuBarIconStack.spacing = 8
         menuBarIconStack.translatesAutoresizingMaskIntoConstraints = false
         menuBarIconStack.addArrangedSubview(menuBarIconLabel)
+        menuBarIconStack.addArrangedSubview(menuBarIconPreview)
         menuBarIconStack.addArrangedSubview(menuBarIconPopup)
         stack.addArrangedSubview(menuBarIconStack)
 
@@ -198,7 +203,9 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
             stack.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -20),
             stack.topAnchor.constraint(equalTo: content.topAnchor, constant: 18),
             stack.bottomAnchor.constraint(lessThanOrEqualTo: content.bottomAnchor, constant: -18),
-            menuBarIconLabel.widthAnchor.constraint(equalToConstant: 90)
+            menuBarIconLabel.widthAnchor.constraint(equalToConstant: 90),
+            menuBarIconPreview.widthAnchor.constraint(equalToConstant: 18),
+            menuBarIconPreview.heightAnchor.constraint(equalToConstant: 18),
         ])
     }
 
@@ -215,7 +222,10 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
     private func sync() {
         launchAtLoginCheckbox.state = LaunchAtLoginSettings.isEnabled ? .on : .off
         hideDockIconCheckbox.state = DockIconSettings.isHidden ? .on : .off
-        menuBarIconPopup.selectItem(withTitle: MenuBarIconSettings.selectedOption.title)
+
+        let selectedOption = MenuBarIconSettings.selectedOption
+        menuBarIconPopup.selectItem(withTitle: selectedOption.title)
+        menuBarIconPreview.image = MenuBarIconSettings.previewImage(for: selectedOption)
     }
 
     @objc private func toggleLaunchAtLogin() {

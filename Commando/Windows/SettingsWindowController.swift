@@ -40,9 +40,30 @@ class SettingsWindowController: NSWindowController {
         window.setFrameAutosaveName("Settings")
         window.contentViewController = NSHostingController(rootView: MainView())
         super.init(window: window)
+        centerTitle("Commando", in: window)
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    private func centerTitle(_ title: String, in window: NSWindow) {
+        window.titleVisibility = .hidden
+
+        guard let titlebarView = window.standardWindowButton(.closeButton)?.superview else {
+            return
+        }
+
+        let titleLabel = NSTextField(labelWithString: title)
+        titleLabel.font = .systemFont(ofSize: 13, weight: .semibold)
+        titleLabel.alignment = .center
+        titleLabel.textColor = .labelColor
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        titlebarView.addSubview(titleLabel)
+
+        NSLayoutConstraint.activate([
+            titleLabel.centerXAnchor.constraint(equalTo: titlebarView.centerXAnchor),
+            titleLabel.centerYAnchor.constraint(equalTo: titlebarView.centerYAnchor),
+        ])
     }
 }
