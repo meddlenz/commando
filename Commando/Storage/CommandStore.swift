@@ -1,6 +1,7 @@
 //
 //  CommandStore.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import Foundation
@@ -44,6 +45,7 @@ extension UserDefaults {
             }
             return migrateLegacyServerCommands()
         }
+        
         set {
             guard let data = try? JSONEncoder().encode(newValue) else { return }
             set(data, forKey: commandSetsKey)

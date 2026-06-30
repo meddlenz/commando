@@ -1,6 +1,7 @@
 //
 //  SSHKeySetupPrompt.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import AppKit
@@ -15,11 +16,13 @@ enum SSHKeySetupPrompt {
         and install it on \(connection.username)@\(connection.host). \
         After that, connections can be made without password prompting.
         """
+
         alert.alertStyle = .informational
         alert.addButton(withTitle: "Install Key")
         alert.addButton(withTitle: "Cancel")
 
         let passwordField = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 320, height: 24))
+        
         passwordField.placeholderString = "Server password"
         alert.accessoryView = passwordField
 
@@ -29,11 +32,13 @@ enum SSHKeySetupPrompt {
         }
 
         let password = passwordField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        
         return password.isEmpty ? nil : password
     }
 
     static func showSuccess(for connection: SSHConnection) {
         let alert = NSAlert()
+
         alert.messageText = "SSH Key Installed"
         alert.informativeText = """
         Your SSH key is now authorized on \(connection.username)@\(connection.host).
@@ -45,6 +50,7 @@ enum SSHKeySetupPrompt {
 
     static func showError(_ error: Error) {
         let alert = NSAlert()
+        
         alert.messageText = "SSH Key Setup Failed"
         alert.informativeText = error.localizedDescription
         alert.alertStyle = .warning

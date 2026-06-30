@@ -1,6 +1,7 @@
 //
 //  SSHKeySetup.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import Foundation
@@ -13,10 +14,10 @@ enum SSHKeySetup {
 
         var errorDescription: String? {
             switch self {
-            case .keyGenerationFailed(let message):
-                return "Could not create SSH key: \(message)"
-            case .keyInstallFailed(let message):
-                return "Could not install SSH key on server: \(message)"
+                case .keyGenerationFailed(let message):
+                    return "Could not create SSH key: \(message)"
+                case .keyInstallFailed(let message):
+                    return "Could not install SSH key on server: \(message)"
             }
         }
     }
@@ -35,12 +36,15 @@ enum SSHKeySetup {
     }
 
     @discardableResult
+
     static func ensureLocalKeyExists() throws -> URL {
         if FileManager.default.fileExists(atPath: publicKeyURL.path) {
             return publicKeyURL
         }
 
         let sshDirectory = privateKeyURL.deletingLastPathComponent()
+
+
         try FileManager.default.createDirectory(
             at: sshDirectory,
             withIntermediateDirectories: true,
@@ -48,6 +52,7 @@ enum SSHKeySetup {
         )
 
         let process = Process()
+
         process.executableURL = URL(fileURLWithPath: "/usr/bin/ssh-keygen")
         process.arguments = [
             "-t", "ed25519",
@@ -60,11 +65,13 @@ enum SSHKeySetup {
         process.standardError = errorPipe
 
         try process.run()
+
         process.waitUntilExit()
 
         guard process.terminationStatus == 0 else {
             let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
             let message = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
+            
             throw SetupError.keyGenerationFailed(message ?? "Unknown error")
         }
 

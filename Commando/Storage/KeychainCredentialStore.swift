@@ -1,6 +1,7 @@
 //
 //  KeychainCredentialStore.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import Foundation
@@ -25,9 +26,11 @@ enum KeychainCredentialStore {
         ]
 
         let status = SecItemUpdate(query as CFDictionary, attributes as CFDictionary)
+
         if status == errSecSuccess {
             return
         }
+
         if status == errSecItemNotFound {
             var addQuery = query
             addQuery[kSecValueData as String] = data
@@ -53,11 +56,13 @@ enum KeychainCredentialStore {
 
         var item: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &item)
+
         guard status == errSecSuccess,
               let data = item as? Data,
               let password = String(data: data, encoding: .utf8) else {
             return nil
         }
+
         return password
     }
 
@@ -67,6 +72,7 @@ enum KeychainCredentialStore {
             kSecAttrService as String: service,
             kSecAttrAccount as String: commandSetID.uuidString,
         ]
+        
         SecItemDelete(query as CFDictionary)
     }
 

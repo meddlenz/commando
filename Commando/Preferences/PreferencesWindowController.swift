@@ -1,6 +1,7 @@
 //
 //  PreferencesWindowController.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import AppKit
@@ -23,10 +24,11 @@ final class PreferencesWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
+
+
         window.title = "Settings"
         window.backgroundColor = .preferencesPanelBackground
         window.center()
-        window.setFrameAutosaveName("Settings")
         window.isReleasedWhenClosed = false
         window.collectionBehavior = [.moveToActiveSpace]
 
@@ -36,6 +38,7 @@ final class PreferencesWindowController: NSWindowController {
 
         super.init(window: window)
         buildContent()
+        centerOnVisibleScreen()
     }
 
     required init?(coder: NSCoder) {
@@ -44,8 +47,20 @@ final class PreferencesWindowController: NSWindowController {
 
     override func showWindow(_ sender: Any?) {
         super.showWindow(sender)
+        centerOnVisibleScreen()
         window?.makeKeyAndOrderFront(sender)
         window?.orderFrontRegardless()
+    }
+
+    private func centerOnVisibleScreen() {
+        guard let window else { return }
+        guard let visibleFrame = (window.screen ?? NSScreen.main ?? NSScreen.screens.first)?.visibleFrame else { return }
+
+        var frame = window.frame
+
+        frame.origin.x = visibleFrame.midX - (frame.width / 2)
+        frame.origin.y = visibleFrame.midY - (frame.height / 2)
+        window.setFrame(frame, display: true)
     }
 
     private func buildContent() {
@@ -54,7 +69,7 @@ final class PreferencesWindowController: NSWindowController {
     }
 }
 
-// MARK: - Tabs
+// Tabs
 
 private final class PreferencesTabViewController: NSTabViewController {
     private weak var hostWindow: NSWindow?
@@ -69,12 +84,14 @@ private final class PreferencesTabViewController: NSTabViewController {
 
         let general = NSTabViewItem(viewController: GeneralPreferencesViewController())
         general.label = "General"
+
         if #available(macOS 11.0, *) {
             general.image = NSImage(systemSymbolName: "switch.2", accessibilityDescription: nil)
         }
 
         let terminal = NSTabViewItem(viewController: TerminalPreferencesViewController())
         terminal.label = "Terminal"
+
         if #available(macOS 11.0, *) {
             terminal.image = NSImage(systemSymbolName: "terminal", accessibilityDescription: nil)
         }
@@ -112,12 +129,13 @@ private final class PreferencesTabViewController: NSTabViewController {
 
         if let sizable = selectedViewController as? PreferencesSizable {
             preferredHeight = sizable.preferredContentHeight
+
         } else {
             preferredHeight = selectedViewController?.view.fittingSize.height ?? view.fittingSize.height
         }
 
         let maxHeight = (NSScreen.main?.visibleFrame.height ?? 800) - 80
-        let height = min(max(220, preferredHeight), maxHeight)
+        let height = min(max(120, preferredHeight), maxHeight)
         let newSize = NSSize(width: width, height: height)
 
         if animated {
@@ -125,6 +143,7 @@ private final class PreferencesTabViewController: NSTabViewController {
         } else {
             window.setContentSize(newSize)
         }
+
     }
 }
 
@@ -132,7 +151,7 @@ private protocol PreferencesSizable {
     var preferredContentHeight: CGFloat { get }
 }
 
-// MARK: - General
+// General
 
 private final class GeneralPreferencesViewController: NSViewController, PreferencesSizable {
     private let launchAtLoginCheckbox = NSButton(checkboxWithTitle: "Launch at login", target: nil, action: nil)
@@ -141,11 +160,12 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
     private let menuBarIconPreview = NSImageView()
     private let menuBarIconPopup = NSPopUpButton(frame: .zero, pullsDown: false)
     private let menuBarIconStack = NSStackView()
-    private let helpLabel = NSTextField(labelWithString: "When hidden, Commando runs from the menu bar only.")
+    private let helpLabel = NSTextField(labelWithString: "Commando runs from the menu bar when hidden.")
     private let stack = NSStackView()
 
     override func loadView() {
         let content = NSView()
+
         content.translatesAutoresizingMaskIntoConstraints = false
         content.wantsLayer = true
         content.layer?.backgroundColor = NSColor.preferencesPanelBackground.cgColor
@@ -161,6 +181,7 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
         launchAtLoginCheckbox.action = #selector(toggleLaunchAtLogin)
         stack.addArrangedSubview(launchAtLoginCheckbox)
 
+
         hideDockIconCheckbox.target = self
         hideDockIconCheckbox.action = #selector(toggleHideDockIcon)
         stack.addArrangedSubview(hideDockIconCheckbox)
@@ -173,6 +194,7 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
         stack.addArrangedSubview(helpLabel)
 
         menuBarIconLabel.alignment = .right
+
         menuBarIconLabel.setContentHuggingPriority(.required, for: .horizontal)
 
         menuBarIconPopup.target = self
@@ -198,6 +220,7 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
 
         view = content
 
+
         NSLayoutConstraint.activate([
             stack.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 20),
             stack.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -20),
@@ -211,6 +234,7 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
 
     var preferredContentHeight: CGFloat {
         view.layoutSubtreeIfNeeded()
+
         return stack.fittingSize.height + 36
     }
 
@@ -224,6 +248,7 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
         hideDockIconCheckbox.state = DockIconSettings.isHidden ? .on : .off
 
         let selectedOption = MenuBarIconSettings.selectedOption
+
         menuBarIconPopup.selectItem(withTitle: selectedOption.title)
         menuBarIconPreview.image = MenuBarIconSettings.previewImage(for: selectedOption)
     }
@@ -247,7 +272,9 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
         guard let rawValue = menuBarIconPopup.selectedItem?.representedObject as? String,
               let option = MenuBarIconSettings.Option(rawValue: rawValue) else {
             sync()
+
             return
+
         }
 
         MenuBarIconSettings.selectedOption = option
@@ -256,6 +283,7 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
 
     private func presentPreferenceError(_ error: Error) {
         let alert = NSAlert()
+
         alert.messageText = "Unable to update preference"
         alert.informativeText = error.localizedDescription
         alert.alertStyle = .warning
@@ -264,20 +292,21 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
     }
 }
 
-// MARK: - Terminal
+// Terminal
 
 private final class TerminalPreferencesViewController: NSViewController, PreferencesSizable {
     private let helpLabel = NSTextField(labelWithString: "Commands open in this application.")
     private let appIconView = NSImageView()
     private let appNameLabel = NSTextField(labelWithString: "")
     private let appPathLabel = NSTextField(labelWithString: "")
-    private let chooseButton = NSButton(title: "Choose…", target: nil, action: nil)
+    private let chooseButton = NSButton(title: "Choose Terminal App...", target: nil, action: nil)
     private let stack = NSStackView()
     private let appStack = NSStackView()
     private let appTextStack = NSStackView()
 
     override func loadView() {
         let content = NSView()
+
         content.translatesAutoresizingMaskIntoConstraints = false
         content.wantsLayer = true
         content.layer?.backgroundColor = NSColor.preferencesPanelBackground.cgColor
@@ -286,6 +315,7 @@ private final class TerminalPreferencesViewController: NSViewController, Prefere
         stack.alignment = .leading
         stack.distribution = .fill
         stack.spacing = 10
+
         stack.translatesAutoresizingMaskIntoConstraints = false
         content.addSubview(stack)
 
@@ -304,6 +334,7 @@ private final class TerminalPreferencesViewController: NSViewController, Prefere
 
         appNameLabel.font = .systemFont(ofSize: 13, weight: .medium)
         appNameLabel.lineBreakMode = .byTruncatingMiddle
+
         appTextStack.addArrangedSubview(appNameLabel)
 
         appPathLabel.font = .systemFont(ofSize: 11)
@@ -320,6 +351,7 @@ private final class TerminalPreferencesViewController: NSViewController, Prefere
         appStack.addArrangedSubview(appTextStack)
         stack.addArrangedSubview(appStack)
 
+
         chooseButton.target = self
         chooseButton.action = #selector(chooseTerminalApp)
         stack.addArrangedSubview(chooseButton)
@@ -331,6 +363,7 @@ private final class TerminalPreferencesViewController: NSViewController, Prefere
             stack.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -20),
             stack.topAnchor.constraint(equalTo: content.topAnchor, constant: 18),
             stack.bottomAnchor.constraint(lessThanOrEqualTo: content.bottomAnchor, constant: -18),
+
             appIconView.widthAnchor.constraint(equalToConstant: 32),
             appIconView.heightAnchor.constraint(equalToConstant: 32),
             appNameLabel.widthAnchor.constraint(equalToConstant: 318),
@@ -340,6 +373,7 @@ private final class TerminalPreferencesViewController: NSViewController, Prefere
 
     var preferredContentHeight: CGFloat {
         view.layoutSubtreeIfNeeded()
+
         return stack.fittingSize.height + 36
     }
 
@@ -361,7 +395,7 @@ private final class TerminalPreferencesViewController: NSViewController, Prefere
     }
 }
 
-// MARK: - Colors
+// Colours
 
 extension NSColor {
     static var preferencesPanelBackground: NSColor {

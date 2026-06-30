@@ -1,6 +1,7 @@
 //
 //  AppDelegate+StatusMenu.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import Cocoa
@@ -34,6 +35,7 @@ extension AppDelegate {
                     action: #selector(runCommandSet(_:)),
                     keyEquivalent: ""
                 )
+
                 item.tag = index
                 item.target = self
                 item.image = playMenuIcon
@@ -43,13 +45,14 @@ extension AppDelegate {
 
         menu.addItem(NSMenuItem.separator())
 
-        let manageCommandSetsMenuItem = NSMenuItem(
+        let commandSetsMenuItem = NSMenuItem(
             title: "Command Sets",
             action: #selector(openCommandSets),
             keyEquivalent: ""
         )
-        manageCommandSetsMenuItem.target = self
-        menu.addItem(manageCommandSetsMenuItem)
+
+        commandSetsMenuItem.target = self
+        menu.addItem(commandSetsMenuItem)
 
         let preferencesMenuItem = NSMenuItem(
             title: "Settings",
@@ -58,7 +61,6 @@ extension AppDelegate {
         )
         preferencesMenuItem.target = self
         menu.addItem(preferencesMenuItem)
-
         menu.addItem(NSMenuItem.separator())
 
         let aboutMenuItem = NSMenuItem(title: "About", action: #selector(openAbout), keyEquivalent: "")
@@ -74,31 +76,31 @@ extension AppDelegate {
 
     private func statusBarImage() -> NSImage {
         if let image = NSImage(named: NSImage.Name(MenuBarIconSettings.selectedOption.assetName)),
-           image.isValid,
-           image.size.width > 0,
-           image.size.height > 0 {
-            return image
+            image.isValid,
+            image.size.width > 0,
+            image.size.height > 0 {
+                return image
         }
 
         if let image = NSImage(named: NSImage.Name("MenuBarIcon")),
-           image.isValid,
-           image.size.width > 0,
-           image.size.height > 0 {
-            return image
+            image.isValid,
+            image.size.width > 0,
+            image.size.height > 0 {
+                return image
         }
 
         if let image = NSImage(named: NSImage.Name("AppIcon")),
-           image.isValid,
-           image.size.width > 0,
-           image.size.height > 0 {
-            return image
+            image.isValid,
+            image.size.width > 0,
+            image.size.height > 0 {
+                return image
         }
 
         if let image = NSApp.applicationIconImage,
-           image.isValid,
-           image.size.width > 0,
-           image.size.height > 0 {
-            return image
+            image.isValid,
+            image.size.width > 0,
+            image.size.height > 0 {
+                return image
         }
 
         return Self.fallbackStatusBarImage()
@@ -107,6 +109,7 @@ extension AppDelegate {
     private static func fallbackStatusBarImage() -> NSImage {
         let size = NSSize(width: 18, height: 18)
         let image = NSImage(size: size)
+
         image.lockFocus()
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = .center
@@ -115,11 +118,13 @@ extension AppDelegate {
             .foregroundColor: NSColor.labelColor,
             .paragraphStyle: paragraph
         ]
+
         ">_".draw(
             in: NSRect(x: 0, y: 1, width: size.width, height: size.height),
             withAttributes: attributes
         )
         image.unlockFocus()
+
         return image
     }
 
@@ -134,6 +139,7 @@ extension AppDelegate {
         let size = NSSize(width: 12, height: 12)
         let image = NSImage(size: size)
         image.lockFocus()
+
         let attributes: [NSAttributedString.Key: Any] = [
             .font: NSFont.systemFont(ofSize: 9, weight: .bold),
             .foregroundColor: NSColor.labelColor
@@ -141,6 +147,7 @@ extension AppDelegate {
         ">".draw(in: NSRect(x: 2, y: 0, width: size.width, height: size.height), withAttributes: attributes)
         image.unlockFocus()
         image.isTemplate = true
+        
         return image
     }
 }

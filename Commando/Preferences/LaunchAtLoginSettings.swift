@@ -1,6 +1,7 @@
 //
 //  LaunchAtLoginSettings.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import CoreServices
@@ -15,6 +16,7 @@ enum LaunchAtLoginSettings {
         if #available(macOS 13.0, *) {
             return SMAppService.mainApp.status == .enabled
         }
+
         return isRegisteredLegacy()
     }
 
@@ -25,9 +27,11 @@ enum LaunchAtLoginSettings {
             } else {
                 try SMAppService.mainApp.unregister()
             }
+
         } else {
             try setEnabledLegacy(enabled)
         }
+
         UserDefaults.standard.set(enabled, forKey: enabledKey)
         NotificationCenter.default.post(name: .preferencesDidChange, object: nil)
     }
@@ -40,12 +44,14 @@ enum LaunchAtLoginSettings {
         }
 
         let items = LSSharedFileListCopySnapshot(loginItems, nil)?.takeRetainedValue() as? [LSSharedFileListItem] ?? []
+       
         for item in items {
             if let itemURL = LSSharedFileListItemCopyResolvedURL(item, 0, nil)?.takeRetainedValue() as URL?,
                itemURL == appURL as URL {
                 return true
             }
         }
+        
         return false
     }
 
@@ -64,13 +70,16 @@ enum LaunchAtLoginSettings {
                 nil,
                 appURL,
                 nil,
+
                 nil
             )
+
             if item == nil {
                 throw LaunchAtLoginError.registrationFailed
             }
         } else {
             let items = LSSharedFileListCopySnapshot(loginItems, nil)?.takeRetainedValue() as? [LSSharedFileListItem] ?? []
+            
             for item in items {
                 if let itemURL = LSSharedFileListItemCopyResolvedURL(item, 0, nil)?.takeRetainedValue() as URL?,
                    itemURL == appURL as URL {

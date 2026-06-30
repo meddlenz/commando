@@ -1,6 +1,7 @@
 //
 //  CommandSet.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import Foundation
@@ -41,6 +42,7 @@ struct CommandSet: Identifiable, Codable, Equatable {
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
+
         id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
         name = try container.decodeIfPresent(String.self, forKey: .name) ?? "New Command"
         serverDetails = try container.decodeIfPresent(String.self, forKey: .serverDetails) ?? ""
@@ -48,11 +50,15 @@ struct CommandSet: Identifiable, Codable, Equatable {
 
         if let stringSteps = try? container.decode([String].self, forKey: .steps), !stringSteps.isEmpty {
             steps = stringSteps
+
         } else if let structuredSteps = try? container.decode([StoredCommandStep].self, forKey: .steps), !structuredSteps.isEmpty {
             steps = structuredSteps.compactMap(\.commandText)
+
+
             if steps.isEmpty {
                 steps = [""]
             }
+
         } else if let legacyCommands = try container.decodeIfPresent([String].self, forKey: .commands), !legacyCommands.isEmpty {
             steps = legacyCommands
         } else {
@@ -62,6 +68,7 @@ struct CommandSet: Identifiable, Codable, Equatable {
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
+
         try container.encode(id, forKey: .id)
         try container.encode(name, forKey: .name)
         try container.encode(serverDetails, forKey: .serverDetails)
@@ -90,11 +97,13 @@ struct CommandSet: Identifiable, Codable, Equatable {
         if isRemote {
             return serverDetails
         }
+
         return stepsSummary
     }
 }
 
-/// Decodes the short-lived structured step format (including removed delay steps).
+
+
 private struct StoredCommandStep: Codable {
     var kind: String?
     var text: String
@@ -102,13 +111,20 @@ private struct StoredCommandStep: Codable {
     var commandText: String? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return nil }
+        
         if kind == "delay" {
-            guard let seconds = Double(trimmed), seconds > 0 else { return nil }
+
+            guard let seconds = Double(trimmed), seconds > 0 else {
+                return nil
+            }
+
             if seconds.rounded() == seconds {
                 return "sleep \(Int(seconds))"
             }
+
             return "sleep \(seconds)"
         }
+
         return trimmed
     }
 }

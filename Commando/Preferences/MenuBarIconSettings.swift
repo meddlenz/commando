@@ -1,6 +1,7 @@
 //
 //  MenuBarIconSettings.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import AppKit
@@ -16,36 +17,36 @@ enum MenuBarIconSettings {
 
         var title: String {
             switch self {
-            case .badge:
-                return "Badge"
-            case .badgeColoured:
-                return "Badge (Coloured)"
-            case .dogtags:
-                return "Dog Tags"
-            case .helmet:
-                return "Helmet"
+                case .badge:
+                    return "Badge"
+                case .badgeColoured:
+                    return "Badge (Coloured)"
+                case .dogtags:
+                    return "Dog Tags"
+                case .helmet:
+                    return "Helmet"
             }
         }
 
         var assetName: String {
             switch self {
-            case .badge:
-                return "MenuBarIconBadge"
-            case .badgeColoured:
-                return "MenuBarIconBadgeColoured"
-            case .dogtags:
-                return "MenuBarIconDogtags"
-            case .helmet:
-                return "MenuBarIconHelmet"
+                case .badge:
+                    return "MenuBarIconBadge"
+                case .badgeColoured:
+                    return "MenuBarIconBadgeColoured"
+                case .dogtags:
+                    return "MenuBarIconDogtags"
+                case .helmet:
+                    return "MenuBarIconHelmet"
             }
         }
 
         var usesTemplateRendering: Bool {
             switch self {
-            case .badgeColoured:
-                return false
-            default:
-                return true
+                case .badgeColoured:
+                    return false
+                default:
+                    return true
             }
         }
     }
@@ -58,6 +59,7 @@ enum MenuBarIconSettings {
                   let option = Option(rawValue: rawValue) else {
                 return .badgeColoured
             }
+
             return option
         }
         set {
@@ -68,6 +70,7 @@ enum MenuBarIconSettings {
 
     static func previewImage(for option: Option) -> NSImage {
         let fallback = NSImage(size: NSSize(width: 18, height: 18))
+
         guard let image = NSImage(named: NSImage.Name(option.assetName)),
               image.isValid,
               image.size.width > 0,
@@ -78,6 +81,7 @@ enum MenuBarIconSettings {
 
         copy.size = NSSize(width: 18, height: 18)
         copy.isTemplate = option.usesTemplateRendering
+        
         return copy
     }
 }

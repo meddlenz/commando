@@ -1,6 +1,7 @@
 //
 //  SettingsWindowController.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import Cocoa
@@ -15,9 +16,11 @@ class SettingsWindowController: NSWindowController {
             if window.isMiniaturized {
                 window.deminiaturize(nil)
             }
+
             instance.showWindow(nil)
             window.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
+
             return
         }
 
@@ -34,12 +37,15 @@ class SettingsWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
+
         window.title = "Commando"
         window.minSize = NSSize(width: 720, height: 480)
         window.center()
         window.setFrameAutosaveName("Settings")
         window.contentViewController = NSHostingController(rootView: MainView())
         super.init(window: window)
+
+        
         centerTitle("Commando", in: window)
     }
 

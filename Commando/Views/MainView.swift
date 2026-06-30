@@ -1,6 +1,7 @@
 //
 //  MainView.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import AppKit
@@ -28,7 +29,7 @@ struct MainView: View {
     @State private var sshKeySetupMessage: String?
 
     private var parsedServerConnection: SSHConnection? {
-        SSHConnection.parse(from: SSHConnection.normalizeServerDetails(serverDetails))
+        SSHConnection.parse(from: SSHConnection.normaliseServerDetails(serverDetails))
     }
 
     var body: some View {
@@ -43,7 +44,7 @@ struct MainView: View {
         }
     }
 
-    // MARK: - Sidebar
+    // Sidebar
 
     private var sidebar: some View {
         VStack(spacing: 0) {
@@ -109,7 +110,7 @@ struct MainView: View {
         .background(Color(NSColor.controlBackgroundColor))
     }
 
-    // MARK: - Detail
+    // Details
 
     private var detailPanel: some View {
         VStack(spacing: 0) {
@@ -164,7 +165,7 @@ struct MainView: View {
 
                     if isServerConnectionEnabled {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Optional. Use user@host or user@host:port, not the full ssh command.")
+                            Text("Use user@host or user@host:port, not the full ssh command.")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
 
@@ -181,7 +182,7 @@ struct MainView: View {
 
                 FormSection(
                     title: "Commands",
-                    help: "Command steps are run in order and wait for the previous to finish."
+                    help: "Command steps are run in order and wait for the previous step to finish."
                 ) {
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(editableSteps) { step in
@@ -220,7 +221,7 @@ struct MainView: View {
             Divider()
 
             HStack {
-                Button("Set Up SSH Key…", action: setUpSSHKey)
+                Button("Set Up SSH Key...", action: setUpSSHKey)
                 if SSHKeySetup.hasLocalKey() {
                     HStack(spacing: 4) {
                         systemIcon("checkmark.circle.fill", fallback: "✓")
@@ -270,11 +271,12 @@ struct MainView: View {
         }
     }
 
-    // MARK: - Actions
+    // Actions
 
     private func setUpSSHKey() {
         guard let connection = parsedServerConnection else {
             validationMessage = "Enter a valid server (username@host) before setting up an SSH key."
+
             return
         }
 
@@ -282,7 +284,7 @@ struct MainView: View {
             return
         }
 
-        sshKeySetupMessage = "Installing SSH key on \(connection.username)@\(connection.host)…"
+        sshKeySetupMessage = "Installing SSH key on \(connection.username)@\(connection.host)..."
         validationMessage = nil
 
         DispatchQueue.global(qos: .userInitiated).async {
@@ -318,9 +320,11 @@ struct MainView: View {
         serverDetails = commandSet.serverDetails
         isServerConnectionEnabled = !commandSet.serverDetails.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         editableSteps = commandSet.steps.map { EditableStep(text: $0) }
+
         if editableSteps.isEmpty {
             editableSteps = [EditableStep()]
         }
+
         isEditing = true
         validationMessage = nil
     }
@@ -329,18 +333,21 @@ struct MainView: View {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedName.isEmpty else {
             validationMessage = "Name is required."
+
             return
         }
 
-        let trimmedServer = isServerConnectionEnabled ? SSHConnection.normalizeServerDetails(serverDetails) : ""
+        let trimmedServer = isServerConnectionEnabled ? SSHConnection.normaliseServerDetails(serverDetails) : ""
         if !trimmedServer.isEmpty && SSHConnection.parse(from: trimmedServer) == nil {
             validationMessage = "Server must be username@host or username@host:port (without ssh)."
+
             return
         }
         let stepTexts = editableSteps.map { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) }
         let nonEmptySteps = stepTexts.filter { !$0.isEmpty }
         guard !nonEmptySteps.isEmpty || !trimmedServer.isEmpty else {
             validationMessage = "Add at least one command step."
+
             return
         }
 
@@ -373,6 +380,7 @@ struct MainView: View {
 
     private func deleteStep(id: UUID) {
         editableSteps.removeAll { $0.id == id }
+
         if editableSteps.isEmpty {
             editableSteps = [EditableStep()]
         }
@@ -400,6 +408,7 @@ struct MainView: View {
             ExampleCommandSet.markRemovedIfNeeded(id)
             KeychainCredentialStore.deletePassword(for: id)
         }
+
         commandSets.remove(atOffsets: offsets)
         UserDefaults.standard.commandSets = commandSets
 
@@ -415,6 +424,7 @@ struct MainView: View {
         KeychainCredentialStore.deletePassword(for: editingID)
         commandSets.remove(at: index)
         UserDefaults.standard.commandSets = commandSets
+        
         cancelEditing()
     }
 

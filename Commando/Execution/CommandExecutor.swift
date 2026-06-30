@@ -1,12 +1,12 @@
 //
 //  CommandExecutor.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import Foundation
 
 enum CommandExecutor {
-
     enum ExecutionError: LocalizedError {
         case invalidServerDetails
         case noSteps
@@ -33,29 +33,34 @@ enum CommandExecutor {
 
     static func terminalCommand(for commandSet: CommandSet, password: String? = nil) throws -> String {
         let savedPassword = password?.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty
-        let serverDetails = SSHConnection.normalizeServerDetails(commandSet.serverDetails)
+        let serverDetails = SSHConnection.normaliseServerDetails(commandSet.serverDetails)
 
         if let connection = SSHConnection.parse(from: serverDetails) {
             let remoteSteps = remoteSteps(from: commandSet.nonEmptySteps, for: connection)
             let remoteScript = SSHShellCommand.remoteScript(from: remoteSteps, keepSessionOpen: true)
+            
             return buildSSHExecution(
                 connection: connection,
                 remoteScript: remoteScript,
                 password: savedPassword,
                 interactive: true
             )
+
         } else if !serverDetails.isEmpty {
             throw ExecutionError.invalidServerDetails
+
         } else if let savedPassword,
                   commandSet.nonEmptySteps.count == 1,
                   let connection = SSHStepParser.parseBareSSHCommand(commandSet.nonEmptySteps[0]) {
             let remoteCommand = SSHStepParser.remoteCommand(from: commandSet.nonEmptySteps[0])
+
             return buildSSHExecution(
                 connection: connection,
                 remoteScript: remoteCommand,
                 password: savedPassword,
                 interactive: remoteCommand == nil
             )
+
         } else if commandSet.nonEmptySteps.isEmpty {
             throw ExecutionError.noSteps
         } else {
@@ -90,6 +95,7 @@ enum CommandExecutor {
                 remoteScript: remoteScript,
                 interactive: interactive
             )
+
             return SSHShellCommand.wrapForTerminal(sshCommand, password: password)
         }
 
@@ -99,11 +105,13 @@ enum CommandExecutor {
             interactive: interactive,
             identityFile: SSHKeySetup.hasLocalKey() ? SSHKeySetup.privateKeyURL : nil
         )
+
         return sshCommand
     }
 
     private static func open(command: String, commandSetName: String) throws {
         let appPath = TerminalAppSettings.selectedAppPath
+        
         do {
             try TerminalLauncher.open(command: command, commandSetName: commandSetName, appPath: appPath)
         } catch {

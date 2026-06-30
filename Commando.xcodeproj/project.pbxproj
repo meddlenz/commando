@@ -40,7 +40,6 @@
 		CR3VWS062A86F94C00B4DC63 /* FormSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3VWS052A86F94C00B4DC63 /* FormSection.swift */; };
 		CR3VWS082A86F94C00B4DC63 /* StepRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3VWS072A86F94C00B4DC63 /* StepRow.swift */; };
 		CR3VWS102A86F94C00B4DC63 /* ValidationBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3VWS092A86F94C00B4DC63 /* ValidationBanner.swift */; };
-		CR3UPD012A86F94C00B4DC63 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3UPD002A86F94C00B4DC63 /* UpdateChecker.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -101,7 +100,6 @@
 		CR3VWS052A86F94C00B4DC63 /* FormSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormSection.swift; sourceTree = "<group>"; };
 		CR3VWS072A86F94C00B4DC63 /* StepRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StepRow.swift; sourceTree = "<group>"; };
 		CR3VWS092A86F94C00B4DC63 /* ValidationBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationBanner.swift; sourceTree = "<group>"; };
-		CR3UPD002A86F94C00B4DC63 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -160,7 +158,6 @@
 				CR3GRP062A86F94C00B4DC63 /* Preferences */,
 				CR3GRP072A86F94C00B4DC63 /* Windows */,
 				CR3GRP082A86F94C00B4DC63 /* Views */,
-				CR3GRP092A86F94C00B4DC63 /* Utilities */,
 				171A9C5F2A86F94C00B4DC63 /* Assets.xcassets */,
 				171A9C642A86F94C00B4DC63 /* Main.storyboard */,
 				171A9C672A86F94C00B4DC63 /* Info.plist */,
@@ -278,14 +275,6 @@
 				CR3VWS092A86F94C00B4DC63 /* ValidationBanner.swift */,
 			);
 			path = Views;
-			sourceTree = "<group>";
-		};
-		CR3GRP092A86F94C00B4DC63 /* Utilities */ = {
-			isa = PBXGroup;
-			children = (
-				CR3UPD002A86F94C00B4DC63 /* UpdateChecker.swift */,
-			);
-			path = Utilities;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -447,7 +436,6 @@
 				CR3VWS062A86F94C00B4DC63 /* FormSection.swift in Sources */,
 				CR3VWS082A86F94C00B4DC63 /* StepRow.swift in Sources */,
 				CR3VWS102A86F94C00B4DC63 /* ValidationBanner.swift in Sources */,
-				CR3UPD012A86F94C00B4DC63 /* UpdateChecker.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

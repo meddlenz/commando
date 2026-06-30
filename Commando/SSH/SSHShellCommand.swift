@@ -1,6 +1,7 @@
 //
 //  SSHShellCommand.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import Foundation
@@ -36,7 +37,6 @@ enum SSHShellCommand {
         )
     }
 
-    /// Each step becomes one line in a remote shell script so state (e.g. cd) persists.
     static func remoteScript(from steps: [String], keepSessionOpen: Bool) -> String? {
         guard !steps.isEmpty else {
             return keepSessionOpen ? "exec bash -i </dev/tty" : nil
@@ -44,9 +44,12 @@ enum SSHShellCommand {
 
         var lines = ["set -e"]
         lines.append(contentsOf: steps)
+
         if keepSessionOpen {
             lines.append("exec bash -i </dev/tty")
         }
+
+
         return lines.joined(separator: "\n")
     }
 
@@ -69,6 +72,7 @@ enum SSHShellCommand {
         if interactive {
             sshLine += " -t"
         }
+
         if let port = connection.port {
             sshLine += " -p \(port)"
         }
@@ -79,9 +83,10 @@ enum SSHShellCommand {
             return sshLine
         }
 
-        // Run from a temp script file (not stdin) so `ssh -t` keeps a PTY and `exec bash -i` works.
+        // Run from a temp script file so `ssh -t` keeps a PTY and `exec bash -i` works.
         let encoded = Data(remoteScript.utf8).base64EncodedString()
         let remoteCommand = "f=$(mktemp /tmp/commandrunner.XXXXXX.sh) && echo \(encoded) | base64 -d > \"$f\" && bash \"$f\"; e=$?; rm -f \"$f\"; exit $e"
+        
         return "\(sshLine) \(shellQuote(remoteCommand))"
     }
 
@@ -95,6 +100,7 @@ enum SSHShellCommand {
                 standardInput: command
             )
         }
+
         return try runWithExpect(command: command, password: password, interactive: command.contains(" -t "))
     }
 
@@ -102,12 +108,14 @@ enum SSHShellCommand {
         if let sshpass = sshpassPath() {
             let passwordBase64 = Data(password.utf8).base64EncodedString()
             let commandBase64 = Data(command.utf8).base64EncodedString()
+
             return """
             export SSHPASS=$(echo '\(passwordBase64)' | base64 -d); \
             echo '\(commandBase64)' | base64 -d | \(shellQuote(sshpass)) -e /bin/bash -s; \
             STATUS=$?; unset SSHPASS; exit $STATUS
             """
         }
+
         return wrapWithExpectForTerminal(command: command, password: password, interactive: command.contains(" -t "))
     }
 
@@ -129,6 +137,7 @@ enum SSHShellCommand {
         /usr/bin/expect -f "$EXPECT_FILE"; \
         STATUS=$?; rm -f "$EXPECT_FILE" "$SCRIPT_FILE"; unset CR_PASS_B64; exit $STATUS
         """
+
     }
 
     private static func expectScriptBody(interactive: Bool) -> String {
@@ -171,6 +180,7 @@ enum SSHShellCommand {
             .appendingPathComponent("commandrunner-expect-\(UUID().uuidString).exp")
 
         try command.write(to: commandURL, atomically: true, encoding: .utf8)
+
         defer {
             try? FileManager.default.removeItem(at: commandURL)
             try? FileManager.default.removeItem(at: expectURL)
@@ -209,6 +219,7 @@ enum SSHShellCommand {
 
         let inputPipe = Pipe()
         let errorPipe = Pipe()
+
         process.standardInput = inputPipe
         process.standardError = errorPipe
         process.standardOutput = Pipe()
@@ -219,6 +230,7 @@ enum SSHShellCommand {
             let data = Data(standardInput.utf8)
             inputPipe.fileHandleForWriting.write(data)
         }
+
         inputPipe.fileHandleForWriting.closeFile()
 
         process.waitUntilExit()
@@ -239,6 +251,7 @@ enum SSHShellCommand {
             "/usr/local/bin/sshpass",
             "/opt/local/bin/sshpass",
         ]
+        
         return candidates.first { FileManager.default.isExecutableFile(atPath: $0) }
     }
 

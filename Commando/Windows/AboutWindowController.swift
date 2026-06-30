@@ -1,6 +1,7 @@
 //
 //  AboutWindowController.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import Cocoa
@@ -25,11 +26,13 @@ final class AboutWindowController: NSWindowController {
             backing: .buffered,
             defer: false
         )
+
         window.title = "About \(AppInfo.name)"
         window.center()
         window.setFrameAutosaveName("About")
         window.contentViewController = NSHostingController(rootView: AboutView())
         super.init(window: window)
+        
         centerTitle("About", in: window)
     }
 

@@ -1,6 +1,7 @@
 //
 //  DockIconSettings.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import AppKit
@@ -10,7 +11,6 @@ enum DockIconSettings {
 
     private static let hiddenKey = "hideDockIcon"
 
-    /// When `true`, the app hides its Dock icon (menu bar only).
     static var isHidden: Bool {
         UserDefaults.standard.bool(forKey: hiddenKey)
     }

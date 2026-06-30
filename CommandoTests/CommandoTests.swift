@@ -165,11 +165,6 @@ class CommandoTests: XCTestCase {
         XCTAssertEqual(script, "set -e\ncd leg/\nnpm install")
     }
 
-    func testTerminalLauncherUsesStableScriptPath() {
-        let url = TerminalLauncher.scriptURL
-        XCTAssertTrue(url.path.contains("Application Support/Commando/run.command"))
-    }
-
     func testTerminalLauncherWrapsCommandWithLoginShell() {
         let wrapped = TerminalLauncher.wrappedCommand("cd leg/\nls", commandSetName: "Test Set")
         XCTAssertTrue(wrapped.contains("user_shell=\"${SHELL:-/bin/zsh}\""))

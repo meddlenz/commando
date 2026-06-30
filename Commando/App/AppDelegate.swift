@@ -1,6 +1,7 @@
 //
 //  AppDelegate.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import Cocoa
@@ -17,8 +18,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         ExampleCommandSet.installIfNeeded()
         applyDockIconPreference()
-        UpdateChecker.checkForUpdateIfNeeded()
-
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(commandSetsDidChange(_:)),
@@ -31,13 +30,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             name: .preferencesDidChange,
             object: nil
         )
-    }
-
-    func applicationWillTerminate(_ notification: Notification) {
-    }
-
-    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        false
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
