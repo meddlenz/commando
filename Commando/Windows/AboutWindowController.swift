@@ -7,16 +7,25 @@
 import Cocoa
 import SwiftUI
 
-final class AboutWindowController: NSWindowController {
+final class AboutWindowController: NSWindowController, NSWindowDelegate {
 
     private static var sharedInstance: AboutWindowController?
 
     static func show() {
+        if DockIconSettings.isHidden {
+            NSApp.setActivationPolicy(.regular)
+        }
+
         if sharedInstance == nil {
             sharedInstance = AboutWindowController()
         }
+
         sharedInstance?.showWindow(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        
+        DispatchQueue.main.async {
+            NSApp.activate(ignoringOtherApps: true)
+            sharedInstance?.window?.makeKeyAndOrderFront(nil)
+        }
     }
 
     private init() {
@@ -31,13 +40,29 @@ final class AboutWindowController: NSWindowController {
         window.center()
         window.setFrameAutosaveName("About")
         window.contentViewController = NSHostingController(rootView: AboutView())
+        window.collectionBehavior = [.moveToActiveSpace]
+
         super.init(window: window)
+
+        window.delegate = self
         
         centerTitle("About", in: window)
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        if DockIconSettings.isHidden {
+            DockIconSettings.applyPolicy()
+        }
+    }
+
+    override func showWindow(_ sender: Any?) {
+        super.showWindow(sender)
+        window?.makeKeyAndOrderFront(sender)
+        window?.orderFrontRegardless()
     }
 
     private func centerTitle(_ title: String, in window: NSWindow) {
@@ -60,3 +85,4 @@ final class AboutWindowController: NSWindowController {
         ])
     }
 }
+

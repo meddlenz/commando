@@ -7,11 +7,15 @@
 import Cocoa
 import SwiftUI
 
-class SettingsWindowController: NSWindowController {
+class SettingsWindowController: NSWindowController, NSWindowDelegate {
 
     private static var sharedInstance: SettingsWindowController?
 
     static func show() {
+        if DockIconSettings.isHidden {
+            NSApp.setActivationPolicy(.regular)
+            }
+            
         if let instance = sharedInstance, let window = instance.window, window.isVisible {
             if window.isMiniaturized {
                 window.deminiaturize(nil)
@@ -27,7 +31,11 @@ class SettingsWindowController: NSWindowController {
         sharedInstance?.close()
         sharedInstance = SettingsWindowController()
         sharedInstance?.showWindow(nil)
-        NSApp.activate(ignoringOtherApps: true)
+
+        DispatchQueue.main.async {
+            NSApp.activate(ignoringOtherApps: true)
+            sharedInstance?.window?.makeKeyAndOrderFront(nil)
+        }
     }
 
     private init() {
@@ -42,15 +50,22 @@ class SettingsWindowController: NSWindowController {
         window.minSize = NSSize(width: 720, height: 480)
         window.center()
         window.setFrameAutosaveName("Settings")
+        window.collectionBehavior = [.moveToActiveSpace]
         window.contentViewController = NSHostingController(rootView: MainView())
         super.init(window: window)
 
-        
+        window.delegate = self
         centerTitle("Commando", in: window)
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        if DockIconSettings.isHidden {
+            DockIconSettings.applyPolicy()
+        }
     }
 
     private func centerTitle(_ title: String, in window: NSWindow) {
@@ -73,3 +88,4 @@ class SettingsWindowController: NSWindowController {
         ])
     }
 }
+

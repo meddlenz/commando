@@ -6,15 +6,23 @@
 
 import AppKit
 
-final class PreferencesWindowController: NSWindowController {
+final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
 
     private static var sharedInstance: PreferencesWindowController?
 
     static func show() {
+        if DockIconSettings.isHidden {
+            NSApp.setActivationPolicy(.regular)
+        }
+        
         sharedInstance?.close()
         sharedInstance = PreferencesWindowController()
         sharedInstance?.showWindow(nil)
-        NSApp.activate(ignoringOtherApps: true)
+
+        DispatchQueue.main.async {
+            NSApp.activate(ignoringOtherApps: true)
+            sharedInstance?.window?.makeKeyAndOrderFront(nil)
+        }
     }
 
     private init() {
@@ -37,12 +45,19 @@ final class PreferencesWindowController: NSWindowController {
         }
 
         super.init(window: window)
+        window.delegate = self
         buildContent()
         centerOnVisibleScreen()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        if DockIconSettings.isHidden {
+            DockIconSettings.applyPolicy()
+        }
     }
 
     override func showWindow(_ sender: Any?) {
@@ -411,3 +426,4 @@ extension NSColor {
         }
     }
 }
+

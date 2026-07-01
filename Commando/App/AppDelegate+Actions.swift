@@ -36,15 +36,40 @@ extension AppDelegate {
     }
 
     @objc func openCommandSets() {
+        if DockIconSettings.isHidden {
+            NSApp.setActivationPolicy(.regular)
+        
+        }
         SettingsWindowController.show()
+
+        DispatchQueue.main.async {
+            NSApp.activate(ignoringOtherApps: true)
+        }
     }
 
     @objc func openPreferences() {
+        if DockIconSettings.isHidden {
+            NSApp.setActivationPolicy(.regular)
+            
+        }
+
         PreferencesWindowController.show()
+
+        DispatchQueue.main.async {
+            NSApp.activate(ignoringOtherApps: true)
+        }
     }
 
     @objc func openAbout() {
+        if DockIconSettings.isHidden {
+            NSApp.setActivationPolicy(.regular)
+            }
+            
         AboutWindowController.show()
+
+        DispatchQueue.main.async {
+            NSApp.activate(ignoringOtherApps: true)
+        }
     }
 
     @objc func quit() {
@@ -60,3 +85,4 @@ extension AppDelegate {
         alert.runModal()
     }
 }
+
