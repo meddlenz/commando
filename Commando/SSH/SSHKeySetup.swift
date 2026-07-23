@@ -8,8 +8,6 @@ import Darwin
 import Foundation
 
 enum SSHKeySetup {
-    private static let configuredKey = "commandoSSHKeyConfigured"
-
     enum SetupError: LocalizedError {
         case keyInstallFailed(String)
 
@@ -32,7 +30,7 @@ enum SSHKeySetup {
     }
 
     static func hasLocalKey() -> Bool {
-        UserDefaults.standard.bool(forKey: configuredKey)
+        FileManager.default.fileExists(atPath: publicKeyURL.path)
     }
 
     static func installKey(on connection: SSHConnection) throws {
@@ -75,7 +73,6 @@ enum SSHKeySetup {
                 commandSetName: "Set Up SSH Key",
                 appPath: TerminalAppSettings.selectedAppPath
             )
-            UserDefaults.standard.set(true, forKey: configuredKey)
         } catch {
             throw SetupError.keyInstallFailed(error.localizedDescription)
         }

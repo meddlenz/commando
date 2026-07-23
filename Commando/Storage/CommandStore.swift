@@ -40,17 +40,34 @@ extension UserDefaults {
     var commandSets: [CommandSet] {
         get {
             if let data = data(forKey: commandSetsKey),
-               let commandSets = try? JSONDecoder().decode([CommandSet].self, from: data) {
+               let commandSets = Self.decodeCommandSets(from: data) {
                 return commandSets
             }
             return migrateLegacyServerCommands()
         }
-        
+
         set {
-            guard let data = try? JSONEncoder().encode(newValue) else { return }
+            guard let data = Self.encodeCommandSets(newValue) else { return }
             set(data, forKey: commandSetsKey)
             NotificationCenter.default.post(name: .commandSetsDidChange, object: nil)
         }
+    }
+
+    private static func encodeCommandSets(_ commandSets: [CommandSet]) -> Data? {
+        guard let json = try? JSONEncoder().encode(commandSets),
+              let encrypted = try? SecureDataStore.encrypt(json) else {
+            return nil
+        }
+        return encrypted
+    }
+
+    private static func decodeCommandSets(from data: Data) -> [CommandSet]? {
+        if let decrypted = try? SecureDataStore.decrypt(data),
+           let commandSets = try? JSONDecoder().decode([CommandSet].self, from: decrypted) {
+            return commandSets
+        }
+
+        return try? JSONDecoder().decode([CommandSet].self, from: data)
     }
 
     private func migrateLegacyServerCommands() -> [CommandSet] {

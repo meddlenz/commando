@@ -15,8 +15,9 @@ enum SSHKeySetupPrompt {
         Commando will open \(TerminalAppSettings.selectedAppName) and install an SSH key on \
         \(connection.username)@\(connection.host).
 
-        Enter the server password in the terminal when prompted. SSH authenticates there, \
-        Commando does not receive or store that password.
+        Enter the server password in the terminal when prompted, and verify the \
+        server fingerprint before continuing. SSH authenticates there, Commando does \
+        not receive or store that password.
         """
 
         alert.alertStyle = .informational

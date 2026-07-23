@@ -20,7 +20,7 @@ enum AppStoragePaths {
         try FileManager.default.createDirectory(
             at: url,
             withIntermediateDirectories: true,
-            attributes: [.posixPermissions: 0o755]
+            attributes: [.posixPermissions: 0o700]
         )
     }
 }

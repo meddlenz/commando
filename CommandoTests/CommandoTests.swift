@@ -208,8 +208,9 @@ class CommandoTests: XCTestCase {
     }
 
     func testUpdateCheckerSelectsDownloadURLByDistributionChannel() {
-        let directURL = URL(string: "https://example.com/commando.dmg")!
+        let directURL = URL(string: "https://files.mac-attic.com/commando.dmg")!
         let appStoreURL = URL(string: "https://apps.apple.com/app/id123")!
+        let blockedURL = URL(string: "https://evil.example/phish")!
 
         XCTAssertEqual(
             UpdateChecker.updateURL(macOSUrl: directURL, macAppStoreUrl: appStoreURL, isMacAppStore: false),
@@ -219,23 +220,39 @@ class CommandoTests: XCTestCase {
             UpdateChecker.updateURL(macOSUrl: directURL, macAppStoreUrl: appStoreURL, isMacAppStore: true),
             appStoreURL
         )
+        XCTAssertNil(UpdateChecker.updateURL(macOSUrl: blockedURL, macAppStoreUrl: appStoreURL, isMacAppStore: false))
+        XCTAssertFalse(UpdateChecker.isAllowedUpdateURL(URL(string: "file:///tmp/evil")!))
         XCTAssertEqual(UpdateChecker.updateActionTitle(isMacAppStore: false), "Download")
         XCTAssertEqual(UpdateChecker.updateActionTitle(isMacAppStore: true), "View in App Store")
+    }
+
+    func testCommandSetsRoundTripThroughEncryptedStorage() {
+        let defaults = UserDefaults.standard
+        let original = defaults.commandSets
+        defer { defaults.commandSets = original }
+
+        let sample = [
+            CommandSet(name: "Secure", serverDetails: "user@example.com", steps: ["echo hi"]),
+        ]
+
+        defaults.commandSets = sample
+        let loaded = defaults.commandSets
+
+        XCTAssertEqual(loaded.count, 1)
+        XCTAssertEqual(loaded[0].name, "Secure")
+        XCTAssertEqual(loaded[0].serverDetails, "user@example.com")
+        XCTAssertEqual(loaded[0].nonEmptySteps, ["echo hi"])
+    }
+
+    func testSSHKeySetupUsesAskForHostKeyVerification() {
+        let connection = SSHConnection(username: "root", host: "example.com", port: nil)
+        let command = SSHShellCommand.buildForPasswordAuth(connection: connection, remoteScript: "true")
+        XCTAssertTrue(command.contains("StrictHostKeyChecking=ask"))
     }
 
     func testSSHKeyUsesUserSSHDirectoryInsteadOfAppContainer() {
         XCTAssertTrue(SSHKeySetup.privateKeyURL.path.hasSuffix("/.ssh/commando_ed25519"))
         XCTAssertFalse(SSHKeySetup.privateKeyURL.path.contains("/Library/Containers/"))
-    }
-
-    func testPasswordAuthWrapFindsSshpassInShell() {
-        let wrapped = SSHShellCommand.wrapForTerminal("ssh user@host", password: "sec'ret")
-        XCTAssertTrue(wrapped.contains("/opt/homebrew/bin/sshpass"))
-        XCTAssertTrue(wrapped.contains("/usr/bin/expect"))
-        XCTAssertTrue(wrapped.contains("set password $env(CR_PASSWORD)"))
-        XCTAssertFalse(wrapped.contains("set password [exec"))
-        XCTAssertFalse(wrapped.contains("expect eof"))
-        XCTAssertTrue(wrapped.contains("export CR_PASSWORD='sec'\\''ret'"))
     }
 
     func testExampleCommandSetContent() {

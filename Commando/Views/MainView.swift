@@ -26,7 +26,6 @@ struct MainView: View {
     @State private var editableSteps: [EditableStep] = []
     @State private var isEditing = false
     @State private var validationMessage: String?
-    @State private var sshKeySetupMessage: String?
 
     private var parsedServerConnection: SSHConnection? {
         SSHConnection.parse(from: SSHConnection.normaliseServerDetails(serverDetails))
@@ -235,12 +234,6 @@ struct MainView: View {
             Text("Set up an SSH key once to connect without entering a password.")
                 .font(.caption)
                 .foregroundColor(.secondary)
-
-            if let sshKeySetupMessage {
-                Text(sshKeySetupMessage)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
         }
         .padding(.top, 4)
     }
@@ -288,9 +281,7 @@ struct MainView: View {
 
         do {
             try SSHKeySetup.installKey(on: connection)
-            sshKeySetupMessage = "Complete SSH key setup in \(TerminalAppSettings.selectedAppName)."
         } catch {
-            sshKeySetupMessage = nil
             SSHKeySetupPrompt.showError(error)
         }
     }
@@ -303,7 +294,6 @@ struct MainView: View {
         editableSteps = [EditableStep()]
         isEditing = true
         validationMessage = nil
-        sshKeySetupMessage = nil
     }
 
     private func editCommandSet(_ commandSet: CommandSet) {
@@ -367,7 +357,6 @@ struct MainView: View {
         isEditing = false
         editingID = nil
         validationMessage = nil
-        sshKeySetupMessage = nil
     }
 
     private func deleteStep(id: UUID) {

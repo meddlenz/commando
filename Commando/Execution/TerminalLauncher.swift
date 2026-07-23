@@ -212,12 +212,12 @@ enum TerminalLauncher {
             try FileManager.default.createDirectory(
                 at: directoryURL,
                 withIntermediateDirectories: true,
-                attributes: [.posixPermissions: 0o755]
+                attributes: [.posixPermissions: 0o700]
             )
 
             let script = "#!/bin/bash\n/usr/bin/touch " + shellSingleQuoted(startedURL.path) + " 2>/dev/null || true\n" + commandScript + "\n"
             try script.write(to: scriptURL, atomically: true, encoding: .utf8)
-            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: scriptURL.path)
+            try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: scriptURL.path)
 
             return SharedTerminalRun(directoryURL: directoryURL, scriptURL: scriptURL, startedURL: startedURL)
 

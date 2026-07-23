@@ -106,8 +106,28 @@ enum UpdateChecker {
         macAppStoreUrl: URL?,
         isMacAppStore: Bool = AppDistribution.isMacAppStore
     ) -> URL? {
-        isMacAppStore ? macAppStoreUrl : macOSUrl
+        let candidate = isMacAppStore ? macAppStoreUrl : macOSUrl
+        guard isAllowedUpdateURL(candidate) else { return nil }
+        return candidate
     }
+
+    static func isAllowedUpdateURL(_ url: URL?) -> Bool {
+        guard let url,
+              let scheme = url.scheme?.lowercased(),
+              scheme == "https",
+              let host = url.host?.lowercased() else {
+            return false
+        }
+
+        return allowedUpdateHosts.contains(host)
+    }
+
+    private static let allowedUpdateHosts: Set<String> = [
+        "files.mac-attic.com",
+        "manticore.nz",
+        "apps.apple.com",
+        "itunes.apple.com",
+    ]
 
     private static func updateURL(for updateInfo: UpdateInfo, isMacAppStore: Bool = AppDistribution.isMacAppStore) -> URL? {
         updateURL(
@@ -137,7 +157,9 @@ enum UpdateChecker {
         alert.addButton(withTitle: updateActionTitle())
         alert.addButton(withTitle: "Later")
 
-        if alert.runModal() == .alertFirstButtonReturn, let updateURL {
+        if alert.runModal() == .alertFirstButtonReturn,
+           let updateURL,
+           isAllowedUpdateURL(updateURL) {
             NSWorkspace.shared.open(updateURL)
             return
         }
@@ -233,7 +255,8 @@ private final class UpdateNotificationDelegate: NSObject, UNUserNotificationCent
 
     private func openDownloadURL(from userInfo: [AnyHashable: Any]) {
         guard let urlString = userInfo[UpdateNotificationKeys.downloadURL] as? String,
-              let url = URL(string: urlString) else {
+              let url = URL(string: urlString),
+              UpdateChecker.isAllowedUpdateURL(url) else {
             return
         }
 

@@ -20,6 +20,7 @@
 		CR3APP022A86F94C00B4DC63 /* StatusMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3APP012A86F94C00B4DC63 /* StatusMenu.swift */; };
 		CR3APP042A86F94C00B4DC63 /* Actions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3APP032A86F94C00B4DC63 /* Actions.swift */; };
 		CR3ASP012A86F94C00B4DC63 /* AppStoragePaths.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3ASP002A86F94C00B4DC63 /* AppStoragePaths.swift */; };
+		CR3SEC012A86F94C00B4DC63 /* SecureDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3SEC002A86F94C00B4DC63 /* SecureDataStore.swift */; };
 		CR3CMD012A86F94C00B4DC63 /* CommandSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3CMD002A86F94C00B4DC63 /* CommandSet.swift */; };
 		CR3CMD032A86F94C00B4DC63 /* CommandStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3CMD022A86F94C00B4DC63 /* CommandStore.swift */; };
 		CR3CMD052A86F94C00B4DC63 /* CommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3CMD042A86F94C00B4DC63 /* CommandExecutor.swift */; };
@@ -84,6 +85,7 @@
 		CR3APP012A86F94C00B4DC63 /* StatusMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenu.swift; sourceTree = "<group>"; };
 		CR3APP032A86F94C00B4DC63 /* Actions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Actions.swift; sourceTree = "<group>"; };
 		CR3ASP002A86F94C00B4DC63 /* AppStoragePaths.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoragePaths.swift; sourceTree = "<group>"; };
+		CR3SEC002A86F94C00B4DC63 /* SecureDataStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureDataStore.swift; sourceTree = "<group>"; };
 		CR3CMD002A86F94C00B4DC63 /* CommandSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandSet.swift; sourceTree = "<group>"; };
 		CR3CMD022A86F94C00B4DC63 /* CommandStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandStore.swift; sourceTree = "<group>"; };
 		CR3CMD042A86F94C00B4DC63 /* CommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandExecutor.swift; sourceTree = "<group>"; };
@@ -228,6 +230,7 @@
 			isa = PBXGroup;
 			children = (
 				CR3ASP002A86F94C00B4DC63 /* AppStoragePaths.swift */,
+				CR3SEC002A86F94C00B4DC63 /* SecureDataStore.swift */,
 				CR3CMD022A86F94C00B4DC63 /* CommandStore.swift */,
 				CR3KCH002A86F94C00B4DC63 /* KeychainCredentialStore.swift */,
 			);
@@ -432,6 +435,7 @@
 				CR3CMD012A86F94C00B4DC63 /* CommandSet.swift in Sources */,
 				CR3CMD032A86F94C00B4DC63 /* CommandStore.swift in Sources */,
 				CR3ASP012A86F94C00B4DC63 /* AppStoragePaths.swift in Sources */,
+				CR3SEC012A86F94C00B4DC63 /* SecureDataStore.swift in Sources */,
 				CR3CMD052A86F94C00B4DC63 /* CommandExecutor.swift in Sources */,
 				CR3KCH012A86F94C00B4DC63 /* KeychainCredentialStore.swift in Sources */,
 				CR3SSH012A86F94C00B4DC63 /* SSHShellCommand.swift in Sources */,
