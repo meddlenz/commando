@@ -16,18 +16,6 @@ enum AppStoragePaths {
         applicationSupportDirectory.appendingPathComponent("terminal-runs", isDirectory: true)
     }
 
-    static var sshDirectory: URL {
-        applicationSupportDirectory.appendingPathComponent("ssh", isDirectory: true)
-    }
-
-    static var privateKeyURL: URL {
-        sshDirectory.appendingPathComponent("commando_ed25519")
-    }
-
-    static var publicKeyURL: URL {
-        privateKeyURL.appendingPathExtension("pub")
-    }
-
     static func ensureDirectory(at url: URL) throws {
         try FileManager.default.createDirectory(
             at: url,

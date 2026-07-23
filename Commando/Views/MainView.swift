@@ -280,26 +280,18 @@ struct MainView: View {
             return
         }
 
-        guard let password = SSHKeySetupPrompt.prompt(for: connection) else {
+        guard SSHKeySetupPrompt.confirm(for: connection) else {
             return
         }
 
-        sshKeySetupMessage = "Installing SSH key on \(connection.username)@\(connection.host)..."
         validationMessage = nil
 
-        DispatchQueue.global(qos: .userInitiated).async {
-            do {
-                try SSHKeySetup.installKey(on: connection, password: password)
-                DispatchQueue.main.async {
-                    sshKeySetupMessage = "SSH key installed on \(connection.username)@\(connection.host)."
-                    SSHKeySetupPrompt.showSuccess(for: connection)
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    sshKeySetupMessage = nil
-                    SSHKeySetupPrompt.showError(error)
-                }
-            }
+        do {
+            try SSHKeySetup.installKey(on: connection)
+            sshKeySetupMessage = "Complete SSH key setup in \(TerminalAppSettings.selectedAppName)."
+        } catch {
+            sshKeySetupMessage = nil
+            SSHKeySetupPrompt.showError(error)
         }
     }
 

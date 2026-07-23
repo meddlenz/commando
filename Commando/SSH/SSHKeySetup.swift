@@ -4,100 +4,88 @@
 //  Jordan Trbuhovic 2026
 //
 
+import Darwin
 import Foundation
 
 enum SSHKeySetup {
+    private static let configuredKey = "commandoSSHKeyConfigured"
 
     enum SetupError: LocalizedError {
-        case keyGenerationFailed(String)
         case keyInstallFailed(String)
 
         var errorDescription: String? {
             switch self {
-                case .keyGenerationFailed(let message):
-                    return "Could not create SSH key: \(message)"
-                case .keyInstallFailed(let message):
-                    return "Could not install SSH key on server: \(message)"
+            case .keyInstallFailed(let message):
+                return "Could not install SSH key on server: \(message)"
             }
         }
     }
 
     static var privateKeyURL: URL {
-        AppStoragePaths.privateKeyURL
+        realUserHomeDirectory
+            .appendingPathComponent(".ssh", isDirectory: true)
+            .appendingPathComponent("commando_ed25519")
     }
 
     static var publicKeyURL: URL {
-        AppStoragePaths.publicKeyURL
+        privateKeyURL.appendingPathExtension("pub")
     }
 
     static func hasLocalKey() -> Bool {
-        FileManager.default.fileExists(atPath: publicKeyURL.path)
+        UserDefaults.standard.bool(forKey: configuredKey)
     }
 
-    @discardableResult
-
-    static func ensureLocalKeyExists() throws -> URL {
-        if FileManager.default.fileExists(atPath: publicKeyURL.path) {
-            return publicKeyURL
-        }
-
-        try AppStoragePaths.ensureDirectory(at: AppStoragePaths.sshDirectory)
-
-        let process = Process()
-
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/ssh-keygen")
-        process.arguments = [
-            "-t", "ed25519",
-            "-f", privateKeyURL.path,
-            "-N", "",
-            "-C", "commando",
-        ]
-
-        let errorPipe = Pipe()
-        process.standardError = errorPipe
-
-        try process.run()
-
-        process.waitUntilExit()
-
-        guard process.terminationStatus == 0 else {
-            let errorData = errorPipe.fileHandleForReading.readDataToEndOfFile()
-            let message = String(data: errorData, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
-            
-            throw SetupError.keyGenerationFailed(message ?? "Unknown error")
-        }
-
-        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: privateKeyURL.path)
-        try FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: publicKeyURL.path)
-
-        return publicKeyURL
-    }
-
-    static func installKey(on connection: SSHConnection, password: String) throws {
-        let publicKeyURL = try ensureLocalKeyExists()
-        let publicKey = try String(contentsOf: publicKeyURL, encoding: .utf8)
-            .trimmingCharacters(in: .whitespacesAndNewlines)
-
-        guard !publicKey.isEmpty else {
-            throw SetupError.keyInstallFailed("Public key file is empty.")
-        }
-
-        let escapedKey = publicKey.replacingOccurrences(of: "'", with: "'\\''")
+    static func installKey(on connection: SSHConnection) throws {
         let remoteScript = """
-        mkdir -p ~/.ssh && chmod 700 ~/.ssh && \
-        touch ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys && \
-        grep -qxF '\(escapedKey)' ~/.ssh/authorized_keys || echo '\(escapedKey)' >> ~/.ssh/authorized_keys
+        set -e
+        umask 077
+        mkdir -p ~/.ssh
+        touch ~/.ssh/authorized_keys
+        key=$(cat)
+        grep -qxF "$key" ~/.ssh/authorized_keys || printf '%s\\n' "$key" >> ~/.ssh/authorized_keys
         """
 
         let sshCommand = SSHShellCommand.buildForPasswordAuth(
             connection: connection,
             remoteScript: remoteScript
         )
+        let destination = "\(connection.username)@\(connection.host)"
+        let keyPath = SSHShellCommand.shellQuote(privateKeyURL.path)
+        let publicKeyPath = SSHShellCommand.shellQuote(publicKeyURL.path)
+        let terminalCommand = """
+        key_path=\(keyPath)
+        public_key_path=\(publicKeyPath)
+        mkdir -p "$(dirname "$key_path")"
+        chmod 700 "$(dirname "$key_path")"
+        if [ ! -f "$key_path" ]; then
+          /usr/bin/ssh-keygen -t ed25519 -f "$key_path" -N '' -C commando
+        fi
+        if [ ! -f "$public_key_path" ]; then
+          /usr/bin/ssh-keygen -y -f "$key_path" > "$public_key_path"
+        fi
+        chmod 600 "$key_path"
+        chmod 644 "$public_key_path"
+        /bin/cat "$public_key_path" | \(sshCommand)
+        printf '\\nSSH key installed successfully on %s.\\n' \(SSHShellCommand.shellQuote(destination))
+        """
 
         do {
-            _ = try SSHShellCommand.runWithPassword(sshCommand, password: password)
+            try TerminalLauncher.open(
+                command: terminalCommand,
+                commandSetName: "Set Up SSH Key",
+                appPath: TerminalAppSettings.selectedAppPath
+            )
+            UserDefaults.standard.set(true, forKey: configuredKey)
         } catch {
             throw SetupError.keyInstallFailed(error.localizedDescription)
         }
+    }
+
+    private static var realUserHomeDirectory: URL {
+        if let passwd = getpwuid(getuid()), let home = passwd.pointee.pw_dir {
+            return URL(fileURLWithPath: String(cString: home), isDirectory: true)
+        }
+
+        return FileManager.default.homeDirectoryForCurrentUser
     }
 }

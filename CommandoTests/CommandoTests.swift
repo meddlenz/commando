@@ -194,10 +194,48 @@ class CommandoTests: XCTestCase {
         XCTAssertTrue(wrapped.contains("exec \"$user_shell\" -l"))
     }
 
+    func testInlineTerminalLauncherPreservesTerminalInput() {
+        let launcher = TerminalLauncher.inlineLauncherBashCommand("ssh -t user@example.com")
+        XCTAssertTrue(launcher.contains("> \"$script_file\""))
+        XCTAssertTrue(launcher.contains("/bin/bash \"$script_file\""))
+        XCTAssertFalse(launcher.contains("| /bin/bash"))
+    }
+
+    func testUpdateCheckerComparesSemanticVersions() {
+        XCTAssertTrue(UpdateChecker.isVersion("2.1", greaterThan: "1.0"))
+        XCTAssertFalse(UpdateChecker.isVersion("1.0", greaterThan: "2.1"))
+        XCTAssertFalse(UpdateChecker.isVersion("1.0", greaterThan: "1.0"))
+    }
+
+    func testUpdateCheckerSelectsDownloadURLByDistributionChannel() {
+        let directURL = URL(string: "https://example.com/commando.dmg")!
+        let appStoreURL = URL(string: "https://apps.apple.com/app/id123")!
+
+        XCTAssertEqual(
+            UpdateChecker.updateURL(macOSUrl: directURL, macAppStoreUrl: appStoreURL, isMacAppStore: false),
+            directURL
+        )
+        XCTAssertEqual(
+            UpdateChecker.updateURL(macOSUrl: directURL, macAppStoreUrl: appStoreURL, isMacAppStore: true),
+            appStoreURL
+        )
+        XCTAssertEqual(UpdateChecker.updateActionTitle(isMacAppStore: false), "Download")
+        XCTAssertEqual(UpdateChecker.updateActionTitle(isMacAppStore: true), "View in App Store")
+    }
+
+    func testSSHKeyUsesUserSSHDirectoryInsteadOfAppContainer() {
+        XCTAssertTrue(SSHKeySetup.privateKeyURL.path.hasSuffix("/.ssh/commando_ed25519"))
+        XCTAssertFalse(SSHKeySetup.privateKeyURL.path.contains("/Library/Containers/"))
+    }
+
     func testPasswordAuthWrapFindsSshpassInShell() {
-        let wrapped = SSHShellCommand.wrapForTerminal("ssh user@host", password: "secret")
+        let wrapped = SSHShellCommand.wrapForTerminal("ssh user@host", password: "sec'ret")
         XCTAssertTrue(wrapped.contains("/opt/homebrew/bin/sshpass"))
         XCTAssertTrue(wrapped.contains("/usr/bin/expect"))
+        XCTAssertTrue(wrapped.contains("set password $env(CR_PASSWORD)"))
+        XCTAssertFalse(wrapped.contains("set password [exec"))
+        XCTAssertFalse(wrapped.contains("expect eof"))
+        XCTAssertTrue(wrapped.contains("export CR_PASSWORD='sec'\\''ret'"))
     }
 
     func testExampleCommandSetContent() {

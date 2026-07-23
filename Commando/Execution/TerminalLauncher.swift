@@ -236,13 +236,17 @@ enum TerminalLauncher {
         "/bin/bash -lc " + shellSingleQuoted(scriptFileLauncherCommand(scriptPath))
     }
 
-    private static func inlineLauncherBashCommand(_ commandScript: String) -> String {
+    static func inlineLauncherBashCommand(_ commandScript: String) -> String {
         let encodedScript = Data(commandScript.utf8).base64EncodedString()
-        let pipeline = "/usr/bin/printf '%s' "
-            + shellSingleQuoted(encodedScript)
-            + " | /usr/bin/base64 -d | /bin/bash"
+        let command = """
+        script_file=$(/usr/bin/mktemp -t commando.XXXXXX.sh)
+        trap '/bin/rm -f "$script_file"' EXIT
+        /usr/bin/printf '%s' \(shellSingleQuoted(encodedScript)) | /usr/bin/base64 -d > "$script_file"
+        /bin/chmod 700 "$script_file"
+        /bin/bash "$script_file"
+        """
 
-        return "/bin/bash -lc " + shellSingleQuoted(pipeline)
+        return "/bin/bash -lc " + shellSingleQuoted(command)
     }
 
     private static func runInTerminal(commandScript: String, appPath: String) throws {

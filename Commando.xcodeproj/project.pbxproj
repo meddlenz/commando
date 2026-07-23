@@ -30,6 +30,7 @@
 		CR3MOD022A86F94C00B4DC63 /* SSHConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3MOD012A86F94C00B4DC63 /* SSHConnection.swift */; };
 		CR3MOD042A86F94C00B4DC63 /* SSHStepParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3MOD032A86F94C00B4DC63 /* SSHStepParser.swift */; };
 		CR3MOD062A86F94C00B4DC63 /* AppInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3MOD052A86F94C00B4DC63 /* AppInfo.swift */; };
+		CR3DST012A86F94C00B4DC63 /* AppDistribution.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3DST002A86F94C00B4DC63 /* AppDistribution.swift */; };
 		CR3PRW012A86F94C00B4DC63 /* PreferencesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3PRW002A86F94C00B4DC63 /* PreferencesWindowController.swift */; };
 		CR3SSH012A86F94C00B4DC63 /* SSHShellCommand.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3SSH002A86F94C00B4DC63 /* SSHShellCommand.swift */; };
 		CR3SSH032A86F94C00B4DC63 /* SSHKeySetup.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3SSH022A86F94C00B4DC63 /* SSHKeySetup.swift */; };
@@ -93,6 +94,7 @@
 		CR3MOD012A86F94C00B4DC63 /* SSHConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHConnection.swift; sourceTree = "<group>"; };
 		CR3MOD032A86F94C00B4DC63 /* SSHStepParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHStepParser.swift; sourceTree = "<group>"; };
 		CR3MOD052A86F94C00B4DC63 /* AppInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppInfo.swift; sourceTree = "<group>"; };
+		CR3DST002A86F94C00B4DC63 /* AppDistribution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDistribution.swift; sourceTree = "<group>"; };
 		CR3PRW002A86F94C00B4DC63 /* PreferencesWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesWindowController.swift; sourceTree = "<group>"; };
 		CR3SSH002A86F94C00B4DC63 /* SSHShellCommand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHShellCommand.swift; sourceTree = "<group>"; };
 		CR3SSH022A86F94C00B4DC63 /* SSHKeySetup.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHKeySetup.swift; sourceTree = "<group>"; };
@@ -217,6 +219,7 @@
 				CR3MOD012A86F94C00B4DC63 /* SSHConnection.swift */,
 				CR3MOD032A86F94C00B4DC63 /* SSHStepParser.swift */,
 				CR3MOD052A86F94C00B4DC63 /* AppInfo.swift */,
+				CR3DST002A86F94C00B4DC63 /* AppDistribution.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -450,6 +453,7 @@
 				CR3MOD022A86F94C00B4DC63 /* SSHConnection.swift in Sources */,
 				CR3MOD042A86F94C00B4DC63 /* SSHStepParser.swift in Sources */,
 				CR3MOD062A86F94C00B4DC63 /* AppInfo.swift in Sources */,
+				CR3DST012A86F94C00B4DC63 /* AppDistribution.swift in Sources */,
 				CR3VWS022A86F94C00B4DC63 /* SystemIcon.swift in Sources */,
 				CR3VWS042A86F94C00B4DC63 /* CommandSetSidebarRow.swift in Sources */,
 				CR3VWS062A86F94C00B4DC63 /* FormSection.swift in Sources */,

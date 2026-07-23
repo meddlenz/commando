@@ -13,12 +13,14 @@ private enum UpdateNotificationKeys {
 
 enum UpdateChecker {
     private static let updateInfoURL = URL(string: "https://manticore.nz/commando/commando.xml")!
+    private static let dismissedVersionKey = "dismissedUpdateVersion"
 
     static func checkForUpdateIfNeeded() {
         UpdateNotificationDelegate.installIfNeeded()
 
         var request = URLRequest(url: updateInfoURL)
         request.timeoutInterval = 15
+        request.cachePolicy = .reloadIgnoringLocalCacheData
 
         URLSession.shared.dataTask(with: request) { data, response, error in
             guard error == nil,
@@ -34,9 +36,14 @@ enum UpdateChecker {
 
             let message = decodeChangeLog(changeLog)
             guard !message.isEmpty else { return }
+            guard UserDefaults.standard.string(forKey: dismissedVersionKey) != remoteVersion else { return }
 
             DispatchQueue.main.async {
-                showUpdateNotification(message: message, downloadURL: updateInfo.macOSUrl)
+                showUpdateAvailable(
+                    message: message,
+                    remoteVersion: remoteVersion,
+                    updateInfo: updateInfo
+                )
             }
         }.resume()
     }
@@ -94,7 +101,51 @@ enum UpdateChecker {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private static func showUpdateNotification(message: String, downloadURL: URL?) {
+    static func updateURL(
+        macOSUrl: URL?,
+        macAppStoreUrl: URL?,
+        isMacAppStore: Bool = AppDistribution.isMacAppStore
+    ) -> URL? {
+        isMacAppStore ? macAppStoreUrl : macOSUrl
+    }
+
+    private static func updateURL(for updateInfo: UpdateInfo, isMacAppStore: Bool = AppDistribution.isMacAppStore) -> URL? {
+        updateURL(
+            macOSUrl: updateInfo.macOSUrl,
+            macAppStoreUrl: updateInfo.macAppStoreUrl,
+            isMacAppStore: isMacAppStore
+        )
+    }
+
+    static func updateActionTitle(isMacAppStore: Bool = AppDistribution.isMacAppStore) -> String {
+        isMacAppStore ? "View in App Store" : "Download"
+    }
+
+    private static func showUpdateAvailable(message: String, remoteVersion: String, updateInfo: UpdateInfo) {
+        let updateURL = updateURL(for: updateInfo)
+        showUpdateAlert(message: message, remoteVersion: remoteVersion, updateURL: updateURL)
+        showUpdateNotification(message: message, updateURL: updateURL)
+    }
+
+    private static func showUpdateAlert(message: String, remoteVersion: String, updateURL: URL?) {
+        NSApp.activate(ignoringOtherApps: true)
+
+        let alert = NSAlert()
+        alert.messageText = "Update Available"
+        alert.informativeText = "Version \(remoteVersion) is available.\n\n\(message)"
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: updateActionTitle())
+        alert.addButton(withTitle: "Later")
+
+        if alert.runModal() == .alertFirstButtonReturn, let updateURL {
+            NSWorkspace.shared.open(updateURL)
+            return
+        }
+
+        UserDefaults.standard.set(remoteVersion, forKey: dismissedVersionKey)
+    }
+
+    private static func showUpdateNotification(message: String, updateURL: URL?) {
         let center = UNUserNotificationCenter.current()
 
         center.getNotificationSettings { settings in
@@ -104,11 +155,11 @@ enum UpdateChecker {
                     center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
                         DispatchQueue.main.async {
                             guard granted else { return }
-                            deliverUpdateNotification(message: message, downloadURL: downloadURL)
+                            deliverUpdateNotification(message: message, updateURL: updateURL)
                         }
                     }
                 case .authorized, .provisional, .ephemeral:
-                    deliverUpdateNotification(message: message, downloadURL: downloadURL)
+                    deliverUpdateNotification(message: message, updateURL: updateURL)
                 default:
                     break
                 }
@@ -116,7 +167,7 @@ enum UpdateChecker {
         }
     }
 
-    private static func deliverUpdateNotification(message: String, downloadURL: URL?) {
+    private static func deliverUpdateNotification(message: String, updateURL: URL?) {
         let displayMessage = message
             .components(separatedBy: .newlines)
             .map { $0.trimmingCharacters(in: .whitespaces) }
@@ -131,8 +182,8 @@ enum UpdateChecker {
         content.sound = .default
         content.threadIdentifier = "software-update"
 
-        if let downloadURL {
-            content.userInfo = [UpdateNotificationKeys.downloadURL: downloadURL.absoluteString]
+        if let updateURL {
+            content.userInfo = [UpdateNotificationKeys.downloadURL: updateURL.absoluteString]
         }
 
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
@@ -194,18 +245,20 @@ private struct UpdateInfo {
     let currentMacOS: String?
     let currentMacOSChangeLog: String?
     let macOSUrl: URL?
+    let macAppStoreUrl: URL?
 }
 
 private final class UpdateInfoParser: NSObject, XMLParserDelegate {
     private var currentMacOS: String?
     private var currentMacOSChangeLog: String?
     private var macOSUrl: URL?
+    private var macAppStoreUrl: URL?
     private var currentText = ""
 
     static func parse(_ data: Data) -> UpdateInfo? {
         let parser = UpdateInfoParser()
         let xmlParser = XMLParser(data: data)
-        
+
         xmlParser.delegate = parser
 
         guard xmlParser.parse() else {
@@ -215,7 +268,8 @@ private final class UpdateInfoParser: NSObject, XMLParserDelegate {
         return UpdateInfo(
             currentMacOS: parser.currentMacOS,
             currentMacOSChangeLog: parser.currentMacOSChangeLog,
-            macOSUrl: parser.macOSUrl
+            macOSUrl: parser.macOSUrl,
+            macAppStoreUrl: parser.macAppStoreUrl
         )
     }
 
@@ -248,6 +302,8 @@ private final class UpdateInfoParser: NSObject, XMLParserDelegate {
             currentMacOSChangeLog = trimmed
         case "macOSUrl":
             macOSUrl = URL(string: trimmed)
+        case "macAppStoreUrl":
+            macAppStoreUrl = URL(string: trimmed)
         default:
             break
         }
