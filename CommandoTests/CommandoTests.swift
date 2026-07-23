@@ -74,6 +74,26 @@ class CommandoTests: XCTestCase {
         XCTAssertFalse(name.isEmpty)
     }
 
+    func testWarpConfigAccessRequiresExactHiddenDirectory() {
+        let warpPath = "/Applications/Warp.app"
+        let expected = WarpConfigAccess.defaultConfigDirectoryURL(for: warpPath)
+
+        XCTAssertTrue(WarpConfigAccess.isExpectedConfigDirectory(expected, for: warpPath))
+        XCTAssertFalse(
+            WarpConfigAccess.isExpectedConfigDirectory(
+                expected.deletingLastPathComponent(),
+                for: warpPath
+            )
+        )
+    }
+
+    func testWarpPreviewUsesPreviewConfigDirectory() {
+        XCTAssertEqual(
+            WarpConfigAccess.configDirectoryName(for: "/Applications/WarpPreview.app"),
+            ".warp-preview"
+        )
+    }
+
     func testSSHStepParserParsesBareSSHCommand() {
         let connection = SSHStepParser.parseBareSSHCommand("ssh admin@256.256.256.256")
         XCTAssertEqual(connection?.username, "admin")
@@ -167,11 +187,17 @@ class CommandoTests: XCTestCase {
 
     func testTerminalLauncherWrapsCommandWithLoginShell() {
         let wrapped = TerminalLauncher.wrappedCommand("cd leg/\nls", commandSetName: "Test Set")
-        XCTAssertTrue(wrapped.contains("user_shell=\"${SHELL:-/bin/zsh}\""))
+        XCTAssertTrue(wrapped.contains("user_shell=\"${SHELL:-}\""))
         XCTAssertTrue(wrapped.contains("Running %s"))
         XCTAssertTrue(wrapped.contains("cd leg/"))
         XCTAssertTrue(wrapped.contains("ls"))
         XCTAssertTrue(wrapped.contains("exec \"$user_shell\" -l"))
+    }
+
+    func testPasswordAuthWrapFindsSshpassInShell() {
+        let wrapped = SSHShellCommand.wrapForTerminal("ssh user@host", password: "secret")
+        XCTAssertTrue(wrapped.contains("/opt/homebrew/bin/sshpass"))
+        XCTAssertTrue(wrapped.contains("/usr/bin/expect"))
     }
 
     func testExampleCommandSetContent() {
@@ -195,8 +221,14 @@ class CommandoTests: XCTestCase {
 
     func testExampleCommandSetDoesNotReinstallAfterRemoval() {
         let removedKey = "exampleCommandSetRemoved"
+        let originalCommandSets = UserDefaults.standard.commandSets
+
+        UserDefaults.standard.commandSets = originalCommandSets.filter { $0.id != ExampleCommandSet.id }
         UserDefaults.standard.set(true, forKey: removedKey)
-        defer { UserDefaults.standard.removeObject(forKey: removedKey) }
+        defer {
+            UserDefaults.standard.commandSets = originalCommandSets
+            UserDefaults.standard.removeObject(forKey: removedKey)
+        }
 
         ExampleCommandSet.installIfNeeded()
 

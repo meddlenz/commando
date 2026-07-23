@@ -19,6 +19,7 @@
 		CR3ABW012A86F94C00B4DC63 /* AboutWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3ABW002A86F94C00B4DC63 /* AboutWindowController.swift */; };
 		CR3APP022A86F94C00B4DC63 /* StatusMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3APP012A86F94C00B4DC63 /* StatusMenu.swift */; };
 		CR3APP042A86F94C00B4DC63 /* Actions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3APP032A86F94C00B4DC63 /* Actions.swift */; };
+		CR3ASP012A86F94C00B4DC63 /* AppStoragePaths.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3ASP002A86F94C00B4DC63 /* AppStoragePaths.swift */; };
 		CR3CMD012A86F94C00B4DC63 /* CommandSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3CMD002A86F94C00B4DC63 /* CommandSet.swift */; };
 		CR3CMD032A86F94C00B4DC63 /* CommandStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3CMD022A86F94C00B4DC63 /* CommandStore.swift */; };
 		CR3CMD052A86F94C00B4DC63 /* CommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3CMD042A86F94C00B4DC63 /* CommandExecutor.swift */; };
@@ -35,6 +36,8 @@
 		CR3SSH052A86F94C00B4DC63 /* SSHKeySetupPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3SSH042A86F94C00B4DC63 /* SSHKeySetupPrompt.swift */; };
 		CR3TL012A86F94C00B4DC63 /* TerminalLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3TL002A86F94C00B4DC63 /* TerminalLauncher.swift */; };
 		CR3TRM012A86F94C00B4DC63 /* TerminalAppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3TRM002A86F94C00B4DC63 /* TerminalAppSettings.swift */; };
+		CR3UPD012A86F94C00B4DC63 /* UpdateChecker.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3UPD002A86F94C00B4DC63 /* UpdateChecker.swift */; };
+		CR3WCA012A86F94C00B4DC63 /* WarpConfigAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3WCA002A86F94C00B4DC63 /* WarpConfigAccess.swift */; };
 		CR3VWS022A86F94C00B4DC63 /* SystemIcon.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3VWS012A86F94C00B4DC63 /* SystemIcon.swift */; };
 		CR3VWS042A86F94C00B4DC63 /* CommandSetSidebarRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3VWS032A86F94C00B4DC63 /* CommandSetSidebarRow.swift */; };
 		CR3VWS062A86F94C00B4DC63 /* FormSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3VWS052A86F94C00B4DC63 /* FormSection.swift */; };
@@ -79,6 +82,7 @@
 		CR3ABW002A86F94C00B4DC63 /* AboutWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutWindowController.swift; sourceTree = "<group>"; };
 		CR3APP012A86F94C00B4DC63 /* StatusMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenu.swift; sourceTree = "<group>"; };
 		CR3APP032A86F94C00B4DC63 /* Actions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Actions.swift; sourceTree = "<group>"; };
+		CR3ASP002A86F94C00B4DC63 /* AppStoragePaths.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoragePaths.swift; sourceTree = "<group>"; };
 		CR3CMD002A86F94C00B4DC63 /* CommandSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandSet.swift; sourceTree = "<group>"; };
 		CR3CMD022A86F94C00B4DC63 /* CommandStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandStore.swift; sourceTree = "<group>"; };
 		CR3CMD042A86F94C00B4DC63 /* CommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandExecutor.swift; sourceTree = "<group>"; };
@@ -95,6 +99,8 @@
 		CR3SSH042A86F94C00B4DC63 /* SSHKeySetupPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHKeySetupPrompt.swift; sourceTree = "<group>"; };
 		CR3TL002A86F94C00B4DC63 /* TerminalLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalLauncher.swift; sourceTree = "<group>"; };
 		CR3TRM002A86F94C00B4DC63 /* TerminalAppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalAppSettings.swift; sourceTree = "<group>"; };
+		CR3UPD002A86F94C00B4DC63 /* UpdateChecker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateChecker.swift; sourceTree = "<group>"; };
+		CR3WCA002A86F94C00B4DC63 /* WarpConfigAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpConfigAccess.swift; sourceTree = "<group>"; };
 		CR3VWS012A86F94C00B4DC63 /* SystemIcon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SystemIcon.swift; sourceTree = "<group>"; };
 		CR3VWS032A86F94C00B4DC63 /* CommandSetSidebarRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandSetSidebarRow.swift; sourceTree = "<group>"; };
 		CR3VWS052A86F94C00B4DC63 /* FormSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormSection.swift; sourceTree = "<group>"; };
@@ -158,6 +164,7 @@
 				CR3GRP062A86F94C00B4DC63 /* Preferences */,
 				CR3GRP072A86F94C00B4DC63 /* Windows */,
 				CR3GRP082A86F94C00B4DC63 /* Views */,
+				CR3GRP092A86F94C00B4DC63 /* Utilities */,
 				171A9C5F2A86F94C00B4DC63 /* Assets.xcassets */,
 				171A9C642A86F94C00B4DC63 /* Main.storyboard */,
 				171A9C672A86F94C00B4DC63 /* Info.plist */,
@@ -217,6 +224,7 @@
 		CR3GRP032A86F94C00B4DC63 /* Storage */ = {
 			isa = PBXGroup;
 			children = (
+				CR3ASP002A86F94C00B4DC63 /* AppStoragePaths.swift */,
 				CR3CMD022A86F94C00B4DC63 /* CommandStore.swift */,
 				CR3KCH002A86F94C00B4DC63 /* KeychainCredentialStore.swift */,
 			);
@@ -249,6 +257,7 @@
 				CR3DCK002A86F94C00B4DC63 /* DockIconSettings.swift */,
 				CR3MBI002A86F94C00B4DC63 /* MenuBarIconSettings.swift */,
 				CR3TRM002A86F94C00B4DC63 /* TerminalAppSettings.swift */,
+				CR3WCA002A86F94C00B4DC63 /* WarpConfigAccess.swift */,
 				CR3PRW002A86F94C00B4DC63 /* PreferencesWindowController.swift */,
 			);
 			path = Preferences;
@@ -275,6 +284,14 @@
 				CR3VWS092A86F94C00B4DC63 /* ValidationBanner.swift */,
 			);
 			path = Views;
+			sourceTree = "<group>";
+		};
+		CR3GRP092A86F94C00B4DC63 /* Utilities */ = {
+			isa = PBXGroup;
+			children = (
+				CR3UPD002A86F94C00B4DC63 /* UpdateChecker.swift */,
+			);
+			path = Utilities;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -411,12 +428,14 @@
 				171A9C5C2A86F94C00B4DC63 /* AppDelegate.swift in Sources */,
 				CR3CMD012A86F94C00B4DC63 /* CommandSet.swift in Sources */,
 				CR3CMD032A86F94C00B4DC63 /* CommandStore.swift in Sources */,
+				CR3ASP012A86F94C00B4DC63 /* AppStoragePaths.swift in Sources */,
 				CR3CMD052A86F94C00B4DC63 /* CommandExecutor.swift in Sources */,
 				CR3KCH012A86F94C00B4DC63 /* KeychainCredentialStore.swift in Sources */,
 				CR3SSH012A86F94C00B4DC63 /* SSHShellCommand.swift in Sources */,
 				CR3SSH032A86F94C00B4DC63 /* SSHKeySetup.swift in Sources */,
 				CR3SSH052A86F94C00B4DC63 /* SSHKeySetupPrompt.swift in Sources */,
 				CR3TRM012A86F94C00B4DC63 /* TerminalAppSettings.swift in Sources */,
+				CR3WCA012A86F94C00B4DC63 /* WarpConfigAccess.swift in Sources */,
 				CR3MBI012A86F94C00B4DC63 /* MenuBarIconSettings.swift in Sources */,
 				CR3TL012A86F94C00B4DC63 /* TerminalLauncher.swift in Sources */,
 				171A9C8B2A86FB4F00B4DC63 /* MainView.swift in Sources */,
@@ -436,6 +455,7 @@
 				CR3VWS062A86F94C00B4DC63 /* FormSection.swift in Sources */,
 				CR3VWS082A86F94C00B4DC63 /* StepRow.swift in Sources */,
 				CR3VWS102A86F94C00B4DC63 /* ValidationBanner.swift in Sources */,
+				CR3UPD012A86F94C00B4DC63 /* UpdateChecker.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -618,7 +638,7 @@
 				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
 				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
 				ENABLE_RESOURCE_ACCESS_USB = NO;
-				ENABLE_USER_SELECTED_FILES = readonly;
+				ENABLE_USER_SELECTED_FILES = readwrite;
 				INFOPLIST_FILE = Commando/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Commando;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
@@ -656,7 +676,7 @@
 				ENABLE_RESOURCE_ACCESS_LOCATION = NO;
 				ENABLE_RESOURCE_ACCESS_PRINTING = NO;
 				ENABLE_RESOURCE_ACCESS_USB = NO;
-				ENABLE_USER_SELECTED_FILES = readonly;
+				ENABLE_USER_SELECTED_FILES = readwrite;
 				INFOPLIST_FILE = Commando/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Commando;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
@@ -678,6 +698,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 5D3622Q6DB;
 				INFOPLIST_FILE = CommandoTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -699,6 +720,7 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 5D3622Q6DB;
 				INFOPLIST_FILE = CommandoTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -719,6 +741,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 5D3622Q6DB;
 				INFOPLIST_FILE = CommandoUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -738,6 +761,7 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 5D3622Q6DB;
 				INFOPLIST_FILE = CommandoUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

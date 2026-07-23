@@ -92,31 +92,32 @@ enum SSHShellCommand {
 
     @discardableResult
     static func runWithPassword(_ command: String, password: String) throws -> Int32 {
-        if let sshpass = sshpassPath() {
-            return try runProcess(
-                executable: sshpass,
-                arguments: ["-e", "/bin/bash", "-s"],
-                environment: ["SSHPASS": password],
-                standardInput: command
-            )
-        }
-
-        return try runWithExpect(command: command, password: password, interactive: command.contains(" -t "))
+        try runWithExpect(command: command, password: password, interactive: command.contains(" -t "))
     }
 
     static func wrapForTerminal(_ command: String, password: String) -> String {
-        if let sshpass = sshpassPath() {
-            let passwordBase64 = Data(password.utf8).base64EncodedString()
-            let commandBase64 = Data(command.utf8).base64EncodedString()
+        let passwordBase64 = Data(password.utf8).base64EncodedString()
+        let commandBase64 = Data(command.utf8).base64EncodedString()
+        let expectWrapper = wrapWithExpectForTerminal(
+            command: command,
+            password: password,
+            interactive: command.contains(" -t ")
+        )
 
-            return """
-            export SSHPASS=$(echo '\(passwordBase64)' | base64 -d); \
-            echo '\(commandBase64)' | base64 -d | \(shellQuote(sshpass)) -e /bin/bash -s; \
-            STATUS=$?; unset SSHPASS; exit $STATUS
-            """
-        }
-
-        return wrapWithExpectForTerminal(command: command, password: password, interactive: command.contains(" -t "))
+        return """
+        SSHPASS_BIN=""
+        for candidate in /opt/homebrew/bin/sshpass /usr/local/bin/sshpass /opt/local/bin/sshpass; do
+          if [ -x "$candidate" ]; then SSHPASS_BIN="$candidate"; break; fi
+        done
+        if [ -n "$SSHPASS_BIN" ]; then
+          export SSHPASS=$(echo '\(passwordBase64)' | base64 -d)
+          echo '\(commandBase64)' | base64 -d | "$SSHPASS_BIN" -e /bin/bash -s
+          STATUS=$?
+          unset SSHPASS
+          exit $STATUS
+        fi
+        \(expectWrapper)
+        """
     }
 
     private static func wrapWithExpectForTerminal(command: String, password: String, interactive: Bool) -> String {
@@ -243,16 +244,6 @@ enum SSHShellCommand {
         }
 
         return status
-    }
-
-    static func sshpassPath() -> String? {
-        let candidates = [
-            "/opt/homebrew/bin/sshpass",
-            "/usr/local/bin/sshpass",
-            "/opt/local/bin/sshpass",
-        ]
-        
-        return candidates.first { FileManager.default.isExecutableFile(atPath: $0) }
     }
 
     static func shellQuote(_ value: String) -> String {

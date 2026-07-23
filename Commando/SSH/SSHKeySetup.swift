@@ -23,12 +23,11 @@ enum SSHKeySetup {
     }
 
     static var privateKeyURL: URL {
-        FileManager.default.homeDirectoryForCurrentUser
-            .appendingPathComponent(".ssh/id_ed25519")
+        AppStoragePaths.privateKeyURL
     }
 
     static var publicKeyURL: URL {
-        privateKeyURL.appendingPathExtension("pub")
+        AppStoragePaths.publicKeyURL
     }
 
     static func hasLocalKey() -> Bool {
@@ -42,14 +41,7 @@ enum SSHKeySetup {
             return publicKeyURL
         }
 
-        let sshDirectory = privateKeyURL.deletingLastPathComponent()
-
-
-        try FileManager.default.createDirectory(
-            at: sshDirectory,
-            withIntermediateDirectories: true,
-            attributes: [.posixPermissions: 0o700]
-        )
+        try AppStoragePaths.ensureDirectory(at: AppStoragePaths.sshDirectory)
 
         let process = Process()
 
@@ -74,6 +66,9 @@ enum SSHKeySetup {
             
             throw SetupError.keyGenerationFailed(message ?? "Unknown error")
         }
+
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: privateKeyURL.path)
+        try FileManager.default.setAttributes([.posixPermissions: 0o644], ofItemAtPath: publicKeyURL.path)
 
         return publicKeyURL
     }

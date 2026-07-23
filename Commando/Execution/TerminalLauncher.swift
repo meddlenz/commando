@@ -177,13 +177,10 @@ enum TerminalLauncher {
     }
 
     private static var sharedTerminalRunRootURL: URL {
-        URL(fileURLWithPath: realUserHomeDirectory(), isDirectory: true)
-            .appendingPathComponent(".commando", isDirectory: true)
-            .appendingPathComponent("terminal-runs", isDirectory: true)
+        AppStoragePaths.terminalRunsDirectory
     }
 
-    private static func cleanupOldSharedTerminalRuns() {
-        let root = sharedTerminalRunRootURL
+    private static func cleanupOldSharedTerminalRuns(in root: URL) {
         guard FileManager.default.fileExists(atPath: root.path) else { return }
 
         let cutoff = Date().addingTimeInterval(-60 * 60 * 24)
@@ -201,10 +198,13 @@ enum TerminalLauncher {
         }
     }
 
-    private static func writeSharedTerminalRun(commandScript: String) throws -> SharedTerminalRun {
-        cleanupOldSharedTerminalRuns()
+    private static func writeSharedTerminalRun(
+        commandScript: String,
+        rootURL: URL = sharedTerminalRunRootURL
+    ) throws -> SharedTerminalRun {
+        cleanupOldSharedTerminalRuns(in: rootURL)
 
-        let directoryURL = sharedTerminalRunRootURL.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let directoryURL = rootURL.appendingPathComponent(UUID().uuidString, isDirectory: true)
         let scriptURL = directoryURL.appendingPathComponent("run.sh")
         let startedURL = directoryURL.appendingPathComponent("started")
 
@@ -223,7 +223,7 @@ enum TerminalLauncher {
 
         } catch {
             throw LaunchError.launchFailed(
-                "Commando could not prepare the command for this terminal. It needs permission to write ~/.commando/terminal-runs. Underlying error: \(error.localizedDescription)"
+                "Commando could not prepare the command for this terminal. Underlying error: \(error.localizedDescription)"
             )
         }
     }
@@ -234,6 +234,15 @@ enum TerminalLauncher {
 
     private static func scriptFileLauncherBashCommand(_ scriptPath: String) -> String {
         "/bin/bash -lc " + shellSingleQuoted(scriptFileLauncherCommand(scriptPath))
+    }
+
+    private static func inlineLauncherBashCommand(_ commandScript: String) -> String {
+        let encodedScript = Data(commandScript.utf8).base64EncodedString()
+        let pipeline = "/usr/bin/printf '%s' "
+            + shellSingleQuoted(encodedScript)
+            + " | /usr/bin/base64 -d | /bin/bash"
+
+        return "/bin/bash -lc " + shellSingleQuoted(pipeline)
     }
 
     private static func runInTerminal(commandScript: String, appPath: String) throws {
@@ -272,14 +281,15 @@ enum TerminalLauncher {
         let bundleId = Bundle(path: appPath)?.bundleIdentifier ?? "com.mitchellh.ghostty"
         let wasRunning = isApplicationRunning(appPath: appPath)
 
-        if wasRunning {
-            try ensureApplicationIsRunning(bundleIdentifier: bundleId, appPath: appPath)
-        }
+        try ensureApplicationIsRunning(bundleIdentifier: bundleId, appPath: appPath)
 
         let applicationId = appleScriptStringLiteral(bundleId)
         let cwd = appleScriptStringLiteral(workingDirectory)
-        let run = try writeSharedTerminalRun(commandScript: commandScript)
-        let command = appleScriptStringLiteral(scriptFileLauncherBashCommand(run.scriptURL.path))
+        // Ghostty is sandboxed. Pointing it at a file inside Commando's app
+        // container causes macOS to ask for cross-app data access on every run.
+        // Pass the script inline instead, encoded so arbitrary shell content is
+        // preserved without exposing a container path.
+        let command = appleScriptStringLiteral(inlineLauncherBashCommand(commandScript))
 
         let source: String
         if wasRunning {
@@ -317,13 +327,34 @@ enum TerminalLauncher {
     ) throws {
         let title = commandSetName.trimmingCharacters(in: .whitespacesAndNewlines).nilIfEmpty ?? "Commando"
         let wasRunning = isApplicationRunning(appPath: appPath)
-        let run = try writeSharedTerminalRun(commandScript: commandScript)
-        let command = scriptFileLauncherCommand(run.scriptURL.path)
         let tabConfigName = "commando"
 
-        let warpDirectoryURL = URL(fileURLWithPath: realUserHomeDirectory(), isDirectory: true)
-            .appendingPathComponent(warpConfigDirectoryName(for: appPath), isDirectory: true)
-        let tabDirectoryURL = warpDirectoryURL.appendingPathComponent("tab_configs", isDirectory: true)
+        var warpAccess = WarpConfigAccess.securityScopedAccess(for: appPath)
+        if warpAccess.url == nil {
+            guard WarpConfigAccess.promptForAccess(for: appPath) else {
+                throw LaunchError.launchFailed(
+                    "Commando needs access to your Warp configuration folder to open command sets in Warp. You can grant access when prompted, or choose another terminal app in Settings."
+                )
+            }
+            warpAccess = WarpConfigAccess.securityScopedAccess(for: appPath)
+        }
+
+        guard let warpRoot = warpAccess.url else {
+            throw LaunchError.launchFailed(
+                "Commando could not access your Warp configuration folder. Try choosing Warp again in Settings."
+            )
+        }
+
+        defer { warpAccess.stopAccessingIfNeeded() }
+
+        // Warp is sandboxed. If its command points into Commando's container,
+        // macOS asks the user for cross-app data access on every run. Keep
+        // Warp-specific runner scripts in the already-authorized Warp config
+        // directory instead.
+        let runRootURL = warpRoot.appendingPathComponent("commando-runs", isDirectory: true)
+        let run = try writeSharedTerminalRun(commandScript: commandScript, rootURL: runRootURL)
+        let command = scriptFileLauncherCommand(run.scriptURL.path)
+        let tabDirectoryURL = warpRoot.appendingPathComponent("tab_configs", isDirectory: true)
         let tabConfigURL = tabDirectoryURL.appendingPathComponent("\(tabConfigName).toml")
 
         let toml = """
@@ -559,8 +590,25 @@ enum TerminalLauncher {
             throw LaunchError.launchFailed("\(failurePrefix): failed to compile script.")
         }
 
+        // Launch Services can report an application as ready a moment before its
+        // Apple Events endpoint is registered. Retry only the transient -600
+        // ("Application isn't running") response; all other failures surface
+        // immediately, including Automation permission denials.
+        let deadline = Date().addingTimeInterval(5)
         var errorInfo: NSDictionary?
-        script.executeAndReturnError(&errorInfo)
+
+        repeat {
+            errorInfo = nil
+            script.executeAndReturnError(&errorInfo)
+
+            guard let errorInfo,
+                  (errorInfo[NSAppleScript.errorNumber] as? NSNumber)?.intValue == -600,
+                  Date() < deadline else {
+                break
+            }
+
+            RunLoop.current.run(mode: .default, before: Date().addingTimeInterval(0.15))
+        } while true
 
         if let errorInfo = errorInfo {
             throw LaunchError.launchFailed("\(failurePrefix): \(appleScriptErrorMessage(from: errorInfo))")
@@ -639,18 +687,6 @@ enum TerminalLauncher {
         }
 
         return "warp"
-    }
-
-    private static func warpConfigDirectoryName(for appPath: String) -> String {
-        let bundleId = Bundle(path: appPath)?.bundleIdentifier?.lowercased() ?? ""
-        let displayName = TerminalAppSettings.displayName(for: appPath).lowercased()
-        let pathName = (appPath as NSString).lastPathComponent.lowercased()
-
-        if bundleId.contains("preview") || displayName.contains("preview") || pathName.contains("preview") {
-            return ".warp-preview"
-        }
-
-        return ".warp"
     }
 
     private static func appleScriptStringLiteral(_ value: String) -> String {

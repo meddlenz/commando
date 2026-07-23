@@ -18,6 +18,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         ExampleCommandSet.installIfNeeded()
         applyDockIconPreference()
+        UpdateChecker.checkForUpdateIfNeeded()
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(commandSetsDidChange(_:)),

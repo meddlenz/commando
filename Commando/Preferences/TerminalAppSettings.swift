@@ -126,8 +126,19 @@ enum TerminalAppSettings {
         selectedAppPath = url.path
         storeSecurityScopedBookmarkIfPossible(for: url)
         showUnsupportedTerminalWarningIfNeeded(for: url.path)
-
+        promptForWarpAccessIfNeeded(for: url.path)
         return url.path
+    }
+
+    private static func promptForWarpAccessIfNeeded(for appPath: String) {
+        guard officiallySupportedTerminalName(for: appPath) == "Warp" else {
+            return
+        }
+        guard WarpConfigAccess.securityScopedAccess(for: appPath).url == nil else {
+            return
+        }
+
+        _ = WarpConfigAccess.promptForAccess(for: appPath)
     }
 
     static func isOfficiallySupportedTerminal(appPath: String) -> Bool {
