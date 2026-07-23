@@ -17,8 +17,8 @@
 		171A9C8D2A87010400B4DC63 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 171A9C8C2A87010400B4DC63 /* SettingsWindowController.swift */; };
 		CR3ABV012A86F94C00B4DC63 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3ABV002A86F94C00B4DC63 /* AboutView.swift */; };
 		CR3ABW012A86F94C00B4DC63 /* AboutWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3ABW002A86F94C00B4DC63 /* AboutWindowController.swift */; };
-		CR3APP022A86F94C00B4DC63 /* AppDelegate+StatusMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3APP012A86F94C00B4DC63 /* AppDelegate+StatusMenu.swift */; };
-		CR3APP042A86F94C00B4DC63 /* AppDelegate+Actions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3APP032A86F94C00B4DC63 /* AppDelegate+Actions.swift */; };
+		CR3APP022A86F94C00B4DC63 /* StatusMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3APP012A86F94C00B4DC63 /* StatusMenu.swift */; };
+		CR3APP042A86F94C00B4DC63 /* Actions.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3APP032A86F94C00B4DC63 /* Actions.swift */; };
 		CR3CMD012A86F94C00B4DC63 /* CommandSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3CMD002A86F94C00B4DC63 /* CommandSet.swift */; };
 		CR3CMD032A86F94C00B4DC63 /* CommandStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3CMD022A86F94C00B4DC63 /* CommandStore.swift */; };
 		CR3CMD052A86F94C00B4DC63 /* CommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3CMD042A86F94C00B4DC63 /* CommandExecutor.swift */; };
@@ -77,8 +77,8 @@
 		171A9C8C2A87010400B4DC63 /* SettingsWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindowController.swift; sourceTree = "<group>"; };
 		CR3ABV002A86F94C00B4DC63 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		CR3ABW002A86F94C00B4DC63 /* AboutWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutWindowController.swift; sourceTree = "<group>"; };
-		CR3APP012A86F94C00B4DC63 /* AppDelegate+StatusMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+StatusMenu.swift"; sourceTree = "<group>"; };
-		CR3APP032A86F94C00B4DC63 /* AppDelegate+Actions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AppDelegate+Actions.swift"; sourceTree = "<group>"; };
+		CR3APP012A86F94C00B4DC63 /* StatusMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusMenu.swift; sourceTree = "<group>"; };
+		CR3APP032A86F94C00B4DC63 /* Actions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Actions.swift; sourceTree = "<group>"; };
 		CR3CMD002A86F94C00B4DC63 /* CommandSet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandSet.swift; sourceTree = "<group>"; };
 		CR3CMD022A86F94C00B4DC63 /* CommandStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandStore.swift; sourceTree = "<group>"; };
 		CR3CMD042A86F94C00B4DC63 /* CommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandExecutor.swift; sourceTree = "<group>"; };
@@ -197,8 +197,8 @@
 			isa = PBXGroup;
 			children = (
 				171A9C5B2A86F94C00B4DC63 /* AppDelegate.swift */,
-				CR3APP012A86F94C00B4DC63 /* AppDelegate+StatusMenu.swift */,
-				CR3APP032A86F94C00B4DC63 /* AppDelegate+Actions.swift */,
+				CR3APP012A86F94C00B4DC63 /* StatusMenu.swift */,
+				CR3APP032A86F94C00B4DC63 /* Actions.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -426,8 +426,8 @@
 				CR3DCK012A86F94C00B4DC63 /* DockIconSettings.swift in Sources */,
 				CR3ABV012A86F94C00B4DC63 /* AboutView.swift in Sources */,
 				CR3ABW012A86F94C00B4DC63 /* AboutWindowController.swift in Sources */,
-				CR3APP022A86F94C00B4DC63 /* AppDelegate+StatusMenu.swift in Sources */,
-				CR3APP042A86F94C00B4DC63 /* AppDelegate+Actions.swift in Sources */,
+				CR3APP022A86F94C00B4DC63 /* StatusMenu.swift in Sources */,
+				CR3APP042A86F94C00B4DC63 /* Actions.swift in Sources */,
 				CR3MOD022A86F94C00B4DC63 /* SSHConnection.swift in Sources */,
 				CR3MOD042A86F94C00B4DC63 /* SSHStepParser.swift in Sources */,
 				CR3MOD062A86F94C00B4DC63 /* AppInfo.swift in Sources */,
@@ -621,6 +621,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				INFOPLIST_FILE = Commando/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Commando;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -658,6 +659,7 @@
 				ENABLE_USER_SELECTED_FILES = readonly;
 				INFOPLIST_FILE = Commando/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Commando;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

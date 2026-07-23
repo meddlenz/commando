@@ -1,5 +1,5 @@
 //
-//  AppDelegate+StatusMenu.swift
+//  StatusMenu.swift
 //  Commando
 //  Jordan Trbuhovic 2026
 //

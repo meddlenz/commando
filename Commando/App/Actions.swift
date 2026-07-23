@@ -1,5 +1,5 @@
 //
-//  AppDelegate+Actions.swift
+//  Actions.swift
 //  Commando
 //  Jordan Trbuhovic 2026
 //
