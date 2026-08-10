@@ -11,9 +11,7 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
     private static var sharedInstance: PreferencesWindowController?
 
     static func show() {
-        if DockIconSettings.isHidden {
-            NSApp.setActivationPolicy(.regular)
-        }
+        DockIconSettings.showDockForOpenWindow()
         
         sharedInstance?.close()
         sharedInstance = PreferencesWindowController()
@@ -55,9 +53,7 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
-        if DockIconSettings.isHidden {
-            DockIconSettings.applyPolicy()
-        }
+        DockIconSettings.refreshAfterWindowClosed()
     }
 
     override func showWindow(_ sender: Any?) {

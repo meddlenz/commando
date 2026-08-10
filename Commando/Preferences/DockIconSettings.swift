@@ -22,7 +22,32 @@ enum DockIconSettings {
     }
 
     static func applyPolicy() {
-        applyPolicy(hidden: isHidden)
+        applyPolicy(hidden: isHidden && !hasOpenAppWindows)
+    }
+
+    static func showDockForOpenWindow() {
+        guard isHidden else { return }
+        NSApp.setActivationPolicy(.regular)
+    }
+
+    static func refreshAfterWindowClosed() {
+        DispatchQueue.main.async {
+            applyPolicy()
+            if hasOpenAppWindows {
+                NSApp.activate(ignoringOtherApps: true)
+            }
+        }
+    }
+
+    private static var hasOpenAppWindows: Bool {
+        NSApp.windows.contains(where: isOpenAppWindow)
+    }
+
+    private static func isOpenAppWindow(_ window: NSWindow) -> Bool {
+        let mask = window.styleMask
+        guard mask.contains(.titled) else { return false }
+        guard mask.contains(.closable) || mask.contains(.miniaturizable) else { return false }
+        return window.isVisible || window.isMiniaturized
     }
 
     private static func applyPolicy(hidden: Bool) {

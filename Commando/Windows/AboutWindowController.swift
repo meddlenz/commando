@@ -12,9 +12,7 @@ final class AboutWindowController: NSWindowController, NSWindowDelegate {
     private static var sharedInstance: AboutWindowController?
 
     static func show() {
-        if DockIconSettings.isHidden {
-            NSApp.setActivationPolicy(.regular)
-        }
+        DockIconSettings.showDockForOpenWindow()
 
         if sharedInstance == nil {
             sharedInstance = AboutWindowController()
@@ -55,9 +53,7 @@ final class AboutWindowController: NSWindowController, NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
-        if DockIconSettings.isHidden {
-            DockIconSettings.applyPolicy()
-        }
+        DockIconSettings.refreshAfterWindowClosed()
     }
 
     override func showWindow(_ sender: Any?) {
@@ -74,7 +70,7 @@ final class AboutWindowController: NSWindowController, NSWindowDelegate {
         }
 
         let titleLabel = NSTextField(labelWithString: title)
-        
+
         titleLabel.font = .systemFont(ofSize: 13, weight: .semibold)
         titleLabel.alignment = .center
         titleLabel.textColor = .labelColor

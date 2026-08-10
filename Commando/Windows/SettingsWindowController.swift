@@ -12,9 +12,7 @@ class SettingsWindowController: NSWindowController, NSWindowDelegate {
     private static var sharedInstance: SettingsWindowController?
 
     static func show() {
-        if DockIconSettings.isHidden {
-            NSApp.setActivationPolicy(.regular)
-            }
+        DockIconSettings.showDockForOpenWindow()
             
         if let instance = sharedInstance, let window = instance.window, window.isVisible {
             if window.isMiniaturized {
@@ -63,9 +61,7 @@ class SettingsWindowController: NSWindowController, NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
-        if DockIconSettings.isHidden {
-            DockIconSettings.applyPolicy()
-        }
+        DockIconSettings.refreshAfterWindowClosed()
     }
 
     private func centerTitle(_ title: String, in window: NSWindow) {
@@ -76,7 +72,7 @@ class SettingsWindowController: NSWindowController, NSWindowDelegate {
         }
 
         let titleLabel = NSTextField(labelWithString: title)
-        
+
         titleLabel.font = .systemFont(ofSize: 13, weight: .semibold)
         titleLabel.alignment = .center
         titleLabel.textColor = .labelColor
