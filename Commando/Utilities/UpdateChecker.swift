@@ -1,6 +1,7 @@
 //
 //  UpdateChecker.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import AppKit
@@ -55,6 +56,7 @@ enum UpdateChecker {
     private static func appDisplayName() -> String {
         if let displayName = Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String,
            !displayName.isEmpty {
+
             return displayName
         }
 
@@ -143,6 +145,7 @@ enum UpdateChecker {
 
     private static func showUpdateAvailable(message: String, remoteVersion: String, updateInfo: UpdateInfo) {
         let updateURL = updateURL(for: updateInfo)
+
         showUpdateAlert(message: message, remoteVersion: remoteVersion, updateURL: updateURL)
         showUpdateNotification(message: message, updateURL: updateURL)
     }
@@ -151,6 +154,7 @@ enum UpdateChecker {
         NSApp.activate(ignoringOtherApps: true)
 
         let alert = NSAlert()
+
         alert.messageText = "Update Available"
         alert.informativeText = "Version \(remoteVersion) is available.\n\n\(message)"
         alert.alertStyle = .informational
@@ -224,6 +228,7 @@ private final class UpdateNotificationDelegate: NSObject, UNUserNotificationCent
 
     static func installIfNeeded() {
         let center = UNUserNotificationCenter.current()
+        
         guard center.delegate !== shared else { return }
         center.delegate = shared
     }

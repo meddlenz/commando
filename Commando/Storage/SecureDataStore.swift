@@ -1,6 +1,7 @@
 //
 //  SecureDataStore.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import CryptoKit
@@ -13,15 +14,19 @@ enum SecureDataStore {
     static func encrypt(_ plaintext: Data) throws -> Data {
         let key = try symmetricKey()
         let sealed = try AES.GCM.seal(plaintext, using: key)
+
+
         guard let combined = sealed.combined else {
             throw StoreError.encryptionFailed
         }
+
         return combined
     }
 
     static func decrypt(_ ciphertext: Data) throws -> Data {
         let key = try symmetricKey()
         let sealedBox = try AES.GCM.SealedBox(combined: ciphertext)
+
         return try AES.GCM.open(sealedBox, using: key)
     }
 
@@ -32,12 +37,14 @@ enum SecureDataStore {
 
         var keyBytes = [UInt8](repeating: 0, count: 32)
         let status = SecRandomCopyBytes(kSecRandomDefault, keyBytes.count, &keyBytes)
+       
         guard status == errSecSuccess else {
             throw StoreError.keychainError(status)
         }
 
         let keyData = Data(keyBytes)
         try saveKey(keyData)
+
         return SymmetricKey(data: keyData)
     }
 
@@ -74,6 +81,7 @@ enum SecureDataStore {
         ]
 
         let status = SecItemAdd(query as CFDictionary, nil)
+        
         guard status == errSecSuccess else {
             throw StoreError.keychainError(status)
         }

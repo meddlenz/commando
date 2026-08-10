@@ -81,7 +81,7 @@ extension AppDelegate {
         alert.messageText = "Unable to run command"
         alert.informativeText = error.localizedDescription
         alert.alertStyle = .warning
-        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: "Ok")
         alert.runModal()
     }
 }

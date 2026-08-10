@@ -76,6 +76,7 @@ class SettingsWindowController: NSWindowController, NSWindowDelegate {
         }
 
         let titleLabel = NSTextField(labelWithString: title)
+        
         titleLabel.font = .systemFont(ofSize: 13, weight: .semibold)
         titleLabel.alignment = .center
         titleLabel.textColor = .labelColor

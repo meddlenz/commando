@@ -26,6 +26,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             name: .commandSetsDidChange,
             object: nil
         )
+        
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(preferencesDidChange(_:)),
@@ -36,6 +37,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         SettingsWindowController.show()
+
         return true
     }
 

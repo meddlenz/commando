@@ -30,6 +30,8 @@ struct AboutView: View {
             }
             .buttonStyle(PlainButtonStyle())
 
+
+
             Text("Run saved command sets from your menu bar. Chain shell steps locally or over SSH, and open them in your preferred terminal app.")
                 .font(.body)
                 .multilineTextAlignment(.center)
@@ -42,6 +44,7 @@ struct AboutView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
+
 
             HStack(spacing: 12) {
                 Button(action: { openURL(AppInfo.privacyURL) }) {
@@ -61,7 +64,7 @@ struct AboutView: View {
                         .foregroundColor(.accentColor)
                 }
                 .buttonStyle(PlainButtonStyle())
-            }
+             }
             .padding(.top, 4)
         }
         .padding(32)
@@ -78,7 +81,7 @@ struct AboutView: View {
             RoundedRectangle(cornerRadius: 24)
                 .fill(Color.accentColor.opacity(0.2))
                 .overlay(
-                    Text("CR")
+                     Text("CR")
                         .font(.system(size: 48, weight: .bold))
                         .foregroundColor(.accentColor)
                 )

@@ -1,6 +1,7 @@
 //
 //  WarpConfigAccess.swift
 //  Commando
+//  Jordan Trbuhovic 2026
 //
 
 import AppKit
@@ -99,7 +100,7 @@ enum WarpConfigAccess {
         explanation.informativeText = """
         Warp reads custom tab configurations from \(displayPath)/tab_configs. Commando needs one-time permission to write its commando.toml file there.
 
-        The next dialog automatically try to find \(displayPath) so you can select it. Select the \(directoryName) folder itself, not your home folder.
+        The next dialog will automatically try to find \(displayPath) so you can select it. Select the \(directoryName) folder itself, not your home folder.
         """
         explanation.addButton(withTitle: "Choose \(directoryName) Folder")
         explanation.addButton(withTitle: "Cancel")
@@ -165,7 +166,8 @@ enum WarpConfigAccess {
                 relativeTo: nil
             )
             UserDefaults.standard.set(bookmarkData, forKey: bookmarkKey(for: appPath))
-            return true
+            
+            return true 
         } catch {
             return false
         }
@@ -174,6 +176,7 @@ enum WarpConfigAccess {
     private static func abbreviatedPath(_ url: URL) -> String {
         let homePath = realUserHomeDirectoryURL.path
         guard url.path.hasPrefix(homePath) else { return url.path }
+        
         return "~" + String(url.path.dropFirst(homePath.count))
     }
 

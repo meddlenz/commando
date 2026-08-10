@@ -14,7 +14,7 @@ enum SSHKeySetup {
         var errorDescription: String? {
             switch self {
             case .keyInstallFailed(let message):
-                return "Could not install SSH key on server: \(message)"
+                return "Couldn't install SSH key on server: \(message)"
             }
         }
     }
@@ -30,7 +30,7 @@ enum SSHKeySetup {
     }
 
     static func hasLocalKey() -> Bool {
-        FileManager.default.fileExists(atPath: publicKeyURL.path)
+         FileManager.default.fileExists(atPath: publicKeyURL.path)
     }
 
     static func installKey(on connection: SSHConnection) throws {

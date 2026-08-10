@@ -140,6 +140,7 @@ private final class PreferencesTabViewController: NSTabViewController {
 
         let width: CGFloat = 420
         let selectedViewController = tabView.selectedTabViewItem?.viewController
+
         let preferredHeight: CGFloat
 
         if let sizable = selectedViewController as? PreferencesSizable {
@@ -201,7 +202,8 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
         hideDockIconCheckbox.action = #selector(toggleHideDockIcon)
         stack.addArrangedSubview(hideDockIconCheckbox)
 
-        helpLabel.font = .systemFont(ofSize: 11)
+
+        helpLabel.font = .systemFont(ofSize: 11) 
         helpLabel.textColor = .secondaryLabelColor
         helpLabel.lineBreakMode = .byWordWrapping
         helpLabel.maximumNumberOfLines = 0
@@ -290,6 +292,7 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
 
             return
 
+
         }
 
         MenuBarIconSettings.selectedOption = option
@@ -302,7 +305,7 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
         alert.messageText = "Unable to update preference"
         alert.informativeText = error.localizedDescription
         alert.alertStyle = .warning
-        alert.addButton(withTitle: "OK")
+        alert.addButton(withTitle: "Ok")
         alert.beginSheetModal(for: view.window!)
     }
 }

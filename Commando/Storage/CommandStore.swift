@@ -23,6 +23,7 @@ enum ExampleCommandSet {
 
     static func installIfNeeded() {
         let defaults = UserDefaults.standard
+
         guard !defaults.bool(forKey: exampleCommandSetRemovedKey) else { return }
         guard defaults.commandSets.isEmpty else { return }
 
@@ -55,7 +56,7 @@ extension UserDefaults {
 
     private static func encodeCommandSets(_ commandSets: [CommandSet]) -> Data? {
         guard let json = try? JSONEncoder().encode(commandSets),
-              let encrypted = try? SecureDataStore.encrypt(json) else {
+               let encrypted = try? SecureDataStore.encrypt(json) else {
             return nil
         }
         return encrypted
@@ -64,7 +65,7 @@ extension UserDefaults {
     private static func decodeCommandSets(from data: Data) -> [CommandSet]? {
         if let decrypted = try? SecureDataStore.decrypt(data),
            let commandSets = try? JSONDecoder().decode([CommandSet].self, from: decrypted) {
-            return commandSets
+             return commandSets
         }
 
         return try? JSONDecoder().decode([CommandSet].self, from: data)

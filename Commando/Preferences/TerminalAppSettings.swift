@@ -25,6 +25,7 @@ enum TerminalAppSettings {
             if didStartAccessing {
                 url?.stopAccessingSecurityScopedResource()
             }
+
         }
     }
 
@@ -78,6 +79,7 @@ enum TerminalAppSettings {
     static func displayName(for appPath: String) -> String {
         if let bundle = Bundle(path: appPath),
            let name = bundle.object(forInfoDictionaryKey: "CFBundleName") as? String,
+          
            !name.isEmpty {
             return name
         }
@@ -97,7 +99,8 @@ enum TerminalAppSettings {
 
         let bookmarkedPath = bookmarkedURL
             .resolvingSymlinksInPath()
-            .path
+            .path 
+
 
         guard selectedPath == bookmarkedPath else {
             return SecurityScopedAppAccess(url: nil, didStartAccessing: false)
@@ -127,6 +130,8 @@ enum TerminalAppSettings {
         storeSecurityScopedBookmarkIfPossible(for: url)
         showUnsupportedTerminalWarningIfNeeded(for: url.path)
         promptForWarpAccessIfNeeded(for: url.path)
+
+
         return url.path
     }
 
@@ -224,7 +229,7 @@ enum TerminalAppSettings {
             UserDefaults.standard.set(bookmarkData, forKey: bookmarkKey)
             UserDefaults.standard.set(url.path, forKey: bookmarkPathKey)
         } catch {
-           // Nothing to do
+           // Nothing to do bro
         }
     }
 }

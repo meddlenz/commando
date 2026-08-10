@@ -26,6 +26,7 @@ extension AppDelegate {
         if commandSets.isEmpty {
             let emptyItem = NSMenuItem(title: "No command sets configured", action: nil, keyEquivalent: "")
             emptyItem.isEnabled = false
+
             menu.addItem(emptyItem)
         } else {
             for (index, commandSet) in commandSets.enumerated() {
@@ -59,6 +60,7 @@ extension AppDelegate {
             action: #selector(openPreferences),
             keyEquivalent: ","
         )
+
         preferencesMenuItem.target = self
         menu.addItem(preferencesMenuItem)
         menu.addItem(NSMenuItem.separator())
@@ -111,8 +113,10 @@ extension AppDelegate {
         let image = NSImage(size: size)
 
         image.lockFocus()
+
         let paragraph = NSMutableParagraphStyle()
         paragraph.alignment = .center
+
         let attributes: [NSAttributedString.Key: Any] = [
             .font: NSFont.monospacedSystemFont(ofSize: 11, weight: .bold),
             .foregroundColor: NSColor.labelColor,
@@ -133,6 +137,7 @@ extension AppDelegate {
             let image = NSImage(systemSymbolName: "apple.terminal.fill", accessibilityDescription: "Run")
             image?.isTemplate = true
             image?.size = NSSize(width: 12, height: 12)
+
             return image
         }
 
@@ -145,6 +150,7 @@ extension AppDelegate {
             .foregroundColor: NSColor.labelColor
         ]
         ">".draw(in: NSRect(x: 2, y: 0, width: size.width, height: size.height), withAttributes: attributes)
+       
         image.unlockFocus()
         image.isTemplate = true
         

@@ -22,11 +22,12 @@ struct StepRow: View {
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .font(.system(.body, design: .monospaced))
 
+
             if !text.isEmpty {
                 Button(action: onDelete) {
                     systemIcon("minus.circle.fill", fallback: "−")
-                        .foregroundColor(.red)
-                        .frame(width: 20, height: 20)
+                      .foregroundColor(.red)
+                      .frame(width: 20, height: 20)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(PlainButtonStyle())

@@ -13,6 +13,8 @@ struct ValidationBanner: View {
         HStack(spacing: 8) {
             systemIcon("exclamationmark.triangle.fill", fallback: "!")
             Text(message)
+
+            
             Spacer()
         }
         .font(.caption)

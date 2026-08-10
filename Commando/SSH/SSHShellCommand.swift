@@ -16,7 +16,7 @@ enum SSHShellCommand {
     ) -> String {
         buildSSHInvocation(
             connection: connection,
-            remoteScript: remoteScript,
+             remoteScript: remoteScript,
             interactive: interactive,
             identityFile: identityFile,
             passwordAuth: false,
@@ -29,10 +29,11 @@ enum SSHShellCommand {
         remoteScript: String? = nil,
         interactive: Bool = false
     ) -> String {
+        // TODO: Add password auth
         buildSSHInvocation(
             connection: connection,
             remoteScript: remoteScript,
-            interactive: interactive,
+            interactive: interactive, 
             identityFile: nil,
             passwordAuth: true,
             strictHostKeyChecking: "ask"
@@ -66,7 +67,7 @@ enum SSHShellCommand {
         var sshLine = "ssh -o StrictHostKeyChecking=\(strictHostKeyChecking)"
 
         if passwordAuth {
-            sshLine += " -o PreferredAuthentications=password,keyboard-interactive"
+             sshLine += " -o PreferredAuthentications=password,keyboard-interactive"
             sshLine += " -o PubkeyAuthentication=no"
         } else if let identityFile {
             sshLine += " -o IdentitiesOnly=yes -i \(shellQuote(identityFile.path))"
@@ -74,6 +75,7 @@ enum SSHShellCommand {
 
         if interactive {
             sshLine += " -t"
+
         }
 
         if let port = connection.port {
@@ -86,7 +88,7 @@ enum SSHShellCommand {
             return sshLine
         }
 
-        // Run from a temp script file so `ssh -t` keeps a PTY and `exec bash -i` works.
+        // Run from a temp script file so `ssh -t` keeps a PTY and `exec bash -i` works
         let encoded = Data(remoteScript.utf8).base64EncodedString()
         let remoteCommand = "f=$(mktemp /tmp/commandrunner.XXXXXX.sh) && echo \(encoded) | base64 -d > \"$f\" && bash \"$f\"; e=$?; rm -f \"$f\"; exit $e"
 

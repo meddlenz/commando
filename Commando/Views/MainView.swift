@@ -37,7 +37,7 @@ struct MainView: View {
             Divider()
             detailPanel
         }
-        .frame(minWidth: 760, minHeight: 540)
+         .frame(minWidth: 760, minHeight: 540)
         .onReceive(NotificationCenter.default.publisher(for: .commandSetsDidChange)) { _ in
             commandSets = UserDefaults.standard.commandSets
         }
@@ -65,7 +65,7 @@ struct MainView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
                 .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
-                .listRowBackground(Color.clear)
+                 .listRowBackground(Color.clear)
 
                 if commandSets.isEmpty {
                     Text("No command sets yet")
@@ -88,6 +88,7 @@ struct MainView: View {
                     }
                     .onDelete(perform: deleteCommandSets)
                 }
+
             }
             .listStyle(PlainListStyle())
 
@@ -139,12 +140,15 @@ struct MainView: View {
             systemIcon("terminal.fill", fallback: ">_")
                 .font(.system(size: 44))
                 .foregroundColor(Color.secondary.opacity(0.6))
+
             Text("Select a command set")
                 .font(.system(size: 20, weight: .medium))
+
             Text("Choose one from the list, or create a new command set to run from the menu bar.")
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
                 .frame(maxWidth: 320)
+
             Button("Create Command Set", action: startCreating)
                 .padding(.top, 8)
         }
@@ -193,7 +197,8 @@ struct MainView: View {
                             .frame(maxWidth: .infinity)
                         }
 
-                        Button(action: addStep) {
+
+                         Button(action: addStep) {
                             HStack {
                                 systemIcon("plus.circle", fallback: "+")
                                 .foregroundColor(.accentColor)
@@ -246,6 +251,7 @@ struct MainView: View {
             }
             Spacer()
             Button("Cancel", action: cancelEditing)
+
             saveButton
         }
         .padding(.horizontal, 20)
@@ -320,13 +326,16 @@ struct MainView: View {
         }
 
         let trimmedServer = isServerConnectionEnabled ? SSHConnection.normaliseServerDetails(serverDetails) : ""
+       
         if !trimmedServer.isEmpty && SSHConnection.parse(from: trimmedServer) == nil {
             validationMessage = "Server must be username@host or username@host:port (without ssh)."
 
             return
         }
+
         let stepTexts = editableSteps.map { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) }
         let nonEmptySteps = stepTexts.filter { !$0.isEmpty }
+        
         guard !nonEmptySteps.isEmpty || !trimmedServer.isEmpty else {
             validationMessage = "Add at least one command step."
 
