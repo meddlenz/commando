@@ -28,15 +28,122 @@ class CommandoTests: XCTestCase {
         XCTAssertNil(SSHConnection.parse(from: "@host"))
     }
 
-    func testCommandSetDecodesLegacyCommandsKey() throws {
+    func testCommandSetDecodesParallelSessions() throws {
         let json = """
-        {"id":"A1B2C3D4-E5F6-7890-ABCD-EF1234567890","name":"Legacy","commands":["echo hello","echo world"]}
+        {"name":"Stack","sessions":[["cd frontend","npm run dev"],["cd backend","npm start"]]}
+        """.data(using: .utf8)!
+
+        let commandSet = try JSONDecoder().decode(CommandSet.self, from: json)
+
+        XCTAssertEqual(commandSet.sessions.map(\.steps), [["cd frontend", "npm run dev"], ["cd backend", "npm start"]])
+        XCTAssertEqual(commandSet.nonEmptySessions.count, 2)
+        XCTAssertEqual(commandSet.stepsSummary, "2 sessions")
+    }
+
+    func testCommandSetDecodesNamedSessions() throws {
+        let json = """
+        
+        {"name":"Stack","sessions":[{"name":"Frontend","steps":["npm run dev"]},{"name":"Backend","steps":["npm start"]}]}
+        """.data(using: .utf8)!
+
+        let commandSet = try JSONDecoder().decode(CommandSet.self, from: json)
+        XCTAssertEqual(commandSet.sessions.map(\.name), ["Frontend", "Backend"])
+        XCTAssertEqual(commandSet.sessions.map(\.steps), [["npm run dev"], ["npm start"]])
+    }
+
+    func testCommandSetLegacyStepsBecomeOneSession() throws {
+        let json = """
+        {"name":"Legacy","commands":["echo hello","echo world"]}
         """.data(using: .utf8)!
 
         let commandSet = try JSONDecoder().decode(CommandSet.self, from: json)
         XCTAssertEqual(commandSet.name, "Legacy")
+        XCTAssertEqual(commandSet.sessions.map(\.steps), [["echo hello", "echo world"]])
         XCTAssertEqual(commandSet.nonEmptySteps, ["echo hello", "echo world"])
         XCTAssertTrue(commandSet.serverDetails.isEmpty)
+    }
+
+    func testTerminalCommandsReturnsOneCommandPerSession() throws {
+        let commandSet = CommandSet(
+            name: "Dev",
+            sessions: [
+                CommandSession(steps: ["cd frontend", "npm run dev"]),
+                CommandSession(steps: ["cd backend", "npm start"])
+            ]
+        )
+
+        let commands = try CommandExecutor.terminalCommands(for: commandSet)
+        XCTAssertEqual(commands, ["cd frontend\nnpm run dev", "cd backend\nnpm start"])
+    }
+
+    func testTerminalCommandsSSHWrapsEachSession() throws {
+        let commandSet = CommandSet(
+            name: "Remote",
+            serverDetails: "root@vultr",
+            sessions: [CommandSession(steps: ["uptime"]), CommandSession(steps: ["df -h"])]
+        )
+
+        let commands = try CommandExecutor.terminalCommands(for: commandSet)
+        XCTAssertEqual(commands.count, 2)
+        XCTAssertTrue(commands[0].contains("root@vultr"))
+        XCTAssertTrue(commands[1].contains("root@vultr"))
+        XCTAssertNotEqual(commands[0], commands[1])
+    }
+
+    func testITermScriptSplitsInsteadOfOpeningWindows() {
+        let split = TerminalLauncher.iTermScript(commands: ["'one'", "'two'", "'three'"], split: true)
+        XCTAssertTrue(split.contains("create window with default profile command 'one'"))
+        XCTAssertTrue(split.contains("split vertically with default profile command 'two'"))
+        XCTAssertTrue(split.contains("split vertically with default profile command 'three'"))
+        XCTAssertEqual(split.components(separatedBy: "create window").count - 1, 1)
+
+        let windows = TerminalLauncher.iTermScript(commands: ["'one'", "'two'"], split: false)
+        XCTAssertEqual(windows.components(separatedBy: "create window").count - 1, 2)
+        XCTAssertFalse(windows.contains("split vertically"))
+    }
+
+    func testGhosttyScriptSplitsInsteadOfOpeningWindows() {
+        let split = TerminalLauncher.ghosttyScript(
+            bundleId: "com.mitchellh.ghostty",
+            cwd: "\"/Users/test\"",
+            commands: ["\"one\"", "\"two\""],
+            split: true,
+            activateFirst: true
+        )
+        XCTAssertTrue(split.contains("new window with configuration cfg0"))
+        XCTAssertTrue(split.contains("split pane0 direction right with configuration cfg1"))
+        XCTAssertFalse(split.contains("new window with configuration cfg1"))
+
+        let windows = TerminalLauncher.ghosttyScript(
+            bundleId: "com.mitchellh.ghostty",
+            cwd: "\"/Users/test\"",
+            commands: ["\"one\"", "\"two\""],
+            split: false,
+            activateFirst: true
+        )
+        XCTAssertTrue(windows.contains("new window with configuration cfg0"))
+        XCTAssertTrue(windows.contains("new window with configuration cfg1"))
+        XCTAssertFalse(windows.contains("split pane"))
+    }
+
+    func testWarpTabConfigSplitsParallelSessions() {
+        let single = TerminalLauncher.warpTabConfigTOML(
+            title: "Solo",
+            workingDirectory: "/Users/test",
+            paneCommands: ["/bin/bash run.sh"]
+        )
+        XCTAssertTrue(single.contains("id = \"main\""))
+        XCTAssertFalse(single.contains("split = \"horizontal\""))
+
+        let parallel = TerminalLauncher.warpTabConfigTOML(
+            title: "Stack",
+            workingDirectory: "/Users/test",
+            paneCommands: ["cmd1", "cmd2"]
+        )
+        XCTAssertTrue(parallel.contains("split = \"horizontal\""))
+        XCTAssertTrue(parallel.contains("children = [\"p0\", \"p1\"]"))
+        XCTAssertTrue(parallel.contains("id = \"p0\""))
+        XCTAssertTrue(parallel.contains("id = \"p1\""))
     }
 
     func testCommandSetNonEmptyStepsIgnoresBlankLines() {
@@ -192,6 +299,24 @@ class CommandoTests: XCTestCase {
         XCTAssertTrue(wrapped.contains("cd leg/"))
         XCTAssertTrue(wrapped.contains("ls"))
         XCTAssertTrue(wrapped.contains("exec \"$user_shell\" -l"))
+        XCTAssertTrue(wrapped.contains("{\nset -e\ncd leg/\nls\n}"))
+        XCTAssertTrue(wrapped.contains("set +e"))
+        XCTAssertFalse(wrapped.contains("(\nset -e"))
+    }
+
+    func testPaneTitleUsesSessionNameInsteadOfNumber() {
+        XCTAssertEqual(
+            TerminalLauncher.paneTitle(commandSetName: "Parallel test", sessionName: "", index: 1, count: 2),
+            "Parallel test (2)"
+        )
+        XCTAssertEqual(
+            TerminalLauncher.paneTitle(commandSetName: "Parallel test", sessionName: "Frontend", index: 1, count: 2),
+            "Parallel test (Frontend)"
+        )
+        XCTAssertEqual(
+            TerminalLauncher.paneTitle(commandSetName: "Parallel test", sessionName: "", index: 0, count: 1),
+            "Parallel test"
+        )
     }
 
     func testInlineTerminalLauncherPreservesTerminalInput() {

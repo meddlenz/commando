@@ -178,7 +178,9 @@ enum TerminalAppSettings {
     }
 
     private static func showUnsupportedTerminalWarningIfNeeded(for appPath: String) {
-        guard !isOfficiallySupportedTerminal(appPath: appPath) else { return }
+        guard !isOfficiallySupportedTerminal(appPath: appPath) else {
+             return 
+         }
 
         let selectedName = displayName(for: appPath)
         let alert = NSAlert()

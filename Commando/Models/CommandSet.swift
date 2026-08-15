@@ -10,11 +10,54 @@ extension Notification.Name {
     static let commandSetsDidChange = Notification.Name("commandSetsDidChange")
 }
 
+struct CommandSession: Equatable, Codable {
+    var name: String
+    var steps: [String]
+
+    init(name: String = "", steps: [String] = [""]) {
+        self.name = name
+        self.steps = steps.isEmpty ? [""] : steps
+    }
+    
+
+    enum CodingKeys: String, CodingKey {
+        case name
+        case steps
+    }
+
+    init(from decoder: Decoder) throws {
+        if let steps = try? decoder.singleValueContainer().decode([String].self) {
+            self.init(steps: steps)
+
+            return
+        }
+
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        self.init(
+            name: try container.decodeIfPresent(String.self, forKey: .name) ?? "",
+            steps: try container.decodeIfPresent([String].self, forKey: .steps) ?? [""]
+        )
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(name, forKey: .name)
+        try container.encode(steps, forKey: .steps)
+    }
+
+    var nonEmptySteps: [String] {
+        steps
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+    }
+}
+
 struct CommandSet: Identifiable, Codable, Equatable {
     var id: UUID
     var name: String
     var serverDetails: String
-    var steps: [String]
+    var sessions: [CommandSession]
     var keepSessionOpen: Bool
 
     init(
@@ -22,12 +65,13 @@ struct CommandSet: Identifiable, Codable, Equatable {
         name: String,
         serverDetails: String = "",
         steps: [String] = [""],
+        sessions: [CommandSession]? = nil,
         keepSessionOpen: Bool = true
     ) {
         self.id = id
         self.name = name
         self.serverDetails = serverDetails
-        self.steps = steps.isEmpty ? [""] : steps
+        self.sessions = Self.normalisedSessions(sessions ?? [CommandSession(steps: steps)])
         self.keepSessionOpen = keepSessionOpen
     }
 
@@ -36,6 +80,7 @@ struct CommandSet: Identifiable, Codable, Equatable {
         case name
         case serverDetails
         case steps
+        case sessions
         case commands
         case keepSessionOpen
     }
@@ -48,21 +93,10 @@ struct CommandSet: Identifiable, Codable, Equatable {
         serverDetails = try container.decodeIfPresent(String.self, forKey: .serverDetails) ?? ""
         keepSessionOpen = try container.decodeIfPresent(Bool.self, forKey: .keepSessionOpen) ?? true
 
-        if let stringSteps = try? container.decode([String].self, forKey: .steps), !stringSteps.isEmpty {
-            steps = stringSteps
-
-        } else if let structuredSteps = try? container.decode([StoredCommandStep].self, forKey: .steps), !structuredSteps.isEmpty {
-            steps = structuredSteps.compactMap(\.commandText)
-
-
-            if steps.isEmpty {
-                steps = [""]
-            }
-
-        } else if let legacyCommands = try container.decodeIfPresent([String].self, forKey: .commands), !legacyCommands.isEmpty {
-            steps = legacyCommands
+        if let decodedSessions = try? container.decode([CommandSession].self, forKey: .sessions), !decodedSessions.isEmpty {
+            sessions = Self.normalisedSessions(decodedSessions)
         } else {
-            steps = [""]
+            sessions = [CommandSession(steps: Self.decodeSteps(from: container))]
         }
     }
 
@@ -72,20 +106,58 @@ struct CommandSet: Identifiable, Codable, Equatable {
         try container.encode(id, forKey: .id)
         try container.encode(name, forKey: .name)
         try container.encode(serverDetails, forKey: .serverDetails)
+        try container.encode(sessions, forKey: .sessions)
         try container.encode(steps, forKey: .steps)
         try container.encode(keepSessionOpen, forKey: .keepSessionOpen)
     }
 
+    var steps: [String] {
+        sessions.first?.steps ?? [""]
+    }
+
     var nonEmptySteps: [String] {
-        steps
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
+        nonEmptySessions.flatMap { $0 }
+    }
+
+    var nonEmptySessions: [[String]] {
+        executableSessions.map(\.nonEmptySteps).filter { !$0.isEmpty }
+    }
+
+    var executableSessions: [CommandSession] {
+        let sessions = self.sessions.compactMap { session -> CommandSession? in
+            let steps = session.nonEmptySteps
+
+            guard !steps.isEmpty else {
+                return nil }
+
+            return CommandSession(name: session.name, steps: steps)
+        }
+
+        if !sessions.isEmpty {
+            return sessions
+        }
+
+        return isRemote ? [CommandSession(name: self.sessions.first?.name ?? "", steps: [])] : []
     }
 
     var stepsSummary: String {
-        let commands = nonEmptySteps
-        guard !commands.isEmpty else { return "No steps" }
-        if commands.count == 1 { return commands[0] }
+        let sessions = nonEmptySessions
+
+
+        if sessions.count > 1 {
+            return "\(sessions.count) sessions"
+        }
+
+        let commands = sessions.first ?? []
+
+        guard !commands.isEmpty else {
+            return "No steps"
+            }
+
+        if commands.count == 1 {
+            return commands[0]
+        }
+
         return "\(commands.count) steps"
     }
 
@@ -100,6 +172,30 @@ struct CommandSet: Identifiable, Codable, Equatable {
 
         return stepsSummary
     }
+
+    private static func normalisedSessions(_ sessions: [CommandSession]) -> [CommandSession] {
+        let normalised = sessions.map { CommandSession(name: $0.name, steps: $0.steps.isEmpty ? [""] : $0.steps) }
+        
+        return normalised.isEmpty ? [CommandSession()] : normalised
+    }
+
+    private static func decodeSteps(from container: KeyedDecodingContainer<CodingKeys>) -> [String] {
+        if let stringSteps = try? container.decode([String].self, forKey: .steps), !stringSteps.isEmpty {
+            return stringSteps
+        }
+
+        if let structuredSteps = try? container.decode([StoredCommandStep].self, forKey: .steps), !structuredSteps.isEmpty {
+            let steps = structuredSteps.compactMap(\.commandText)
+            
+            return steps.isEmpty ? [""] : steps
+        }
+
+        if let legacyCommands = try? container.decode([String].self, forKey: .commands), !legacyCommands.isEmpty {
+            return legacyCommands
+        }
+
+        return [""]
+    }
 }
 
 
@@ -110,7 +206,9 @@ private struct StoredCommandStep: Codable {
 
     var commandText: String? {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return nil }
+        guard !trimmed.isEmpty else {
+            return nil
+        }
         
         if kind == "delay" {
 

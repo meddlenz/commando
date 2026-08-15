@@ -34,6 +34,15 @@ enum TerminalLauncher {
     }
 
     static func open(command: String, commandSetName: String, appPath: String) throws {
+        try open(commands: [command], commandSetName: commandSetName, sessionNames: [], appPath: appPath)
+    }
+
+    static func open(commands: [String], commandSetName: String, sessionNames: [String] = [], appPath: String) throws {
+        guard !commands.isEmpty else {
+            return
+        }
+
+
         guard FileManager.default.fileExists(atPath: appPath) else {
             throw LaunchError.appNotFound(appPath)
         }
@@ -43,30 +52,41 @@ enum TerminalLauncher {
 
         let appName = TerminalAppSettings.displayName(for: appPath)
         let terminal = terminalKind(for: appPath)
-        let script = wrappedCommand(command, commandSetName: commandSetName)
+        let scripts = commands.enumerated().map { index, command in
+            wrappedCommand(
+                command,
+                commandSetName: paneTitle(
+                    commandSetName: commandSetName,
+                    sessionName: sessionNames.indices.contains(index) ? sessionNames[index] : "",
+                    index: index,
+                    count: commands.count
+                )
+            )
+        }
+
         let home = realUserHomeDirectory()
 
         switch terminal {
             case .terminal:
-                try runInTerminal(commandScript: script, appPath: appPath)
+                try runInTerminal(commandScripts: scripts, appPath: appPath)
             case .iTerm:
-                try runInITerm(commandScript: script, appPath: appPath)
+                try runInITerm(commandScripts: scripts, appPath: appPath)
             case .warp:
                 try runInWarp(
-                    commandScript: script,
+                    commandScripts: scripts,
                     commandSetName: commandSetName,
                     appPath: appPath,
                     workingDirectory: home
                 )
             case .ghostty:
                 try runInGhostty(
-                    commandScript: script,
+                    commandScripts: scripts,
                     appPath: appPath,
                     workingDirectory: home
                 )
             case .alacritty:
-                try runInGenericTerminal(
-                    commandScript: script,
+                try runInGenericTerminals(
+                    commandScripts: scripts,
                     appPath: appPath,
                     appName: appName,
                     launchArguments: { scriptURL in
@@ -74,8 +94,8 @@ enum TerminalLauncher {
                     }
                 )
             case .wezTerm:
-                try runInGenericTerminal(
-                    commandScript: script,
+                try runInGenericTerminals(
+                    commandScripts: scripts,
                     appPath: appPath,
                     appName: appName,
                     launchArguments: { scriptURL in
@@ -83,8 +103,8 @@ enum TerminalLauncher {
                     }
                 )
             case .generic:
-                try runInGenericTerminal(
-                    commandScript: script,
+                try runInGenericTerminals(
+                    commandScripts: scripts,
                     appPath: appPath,
                     appName: appName
                 )
@@ -121,11 +141,12 @@ enum TerminalLauncher {
         command_set_name=\(shellSingleQuoted(safeTitle))
         printf '\n========== Commando ==========\nRunning %s\n==============================\n\n' "$command_set_name"
 
-        (
+        {
         set -e
         \(command)
-        )
+        }
         status=$?
+        set +e
 
         if [ "$status" -ne 0 ]; then
             printf '\nCommando command exited with status %s.\n' "$status"
@@ -133,6 +154,23 @@ enum TerminalLauncher {
 
         exec "$user_shell" -l
         """
+    }
+
+    static func paneTitle(commandSetName: String, sessionName: String = "", index: Int, count: Int) -> String {
+        let setName = commandSetName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let safeSet = setName.isEmpty ? "Command Set" : setName
+
+        let custom = sessionName.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        if !custom.isEmpty {
+            return "\(safeSet) (\(custom))"
+        }
+
+        if count == 1 {
+            return safeSet
+        }
+
+        return "\(safeSet) (\(index + 1))"
     }
 
     private static func terminalKind(for appPath: String) -> TerminalKind {
@@ -181,7 +219,9 @@ enum TerminalLauncher {
     }
 
     private static func cleanupOldSharedTerminalRuns(in root: URL) {
-        guard FileManager.default.fileExists(atPath: root.path) else { return }
+        guard FileManager.default.fileExists(atPath: root.path) else {
+            return
+        }
 
         let cutoff = Date().addingTimeInterval(-60 * 60 * 24)
 
@@ -189,7 +229,9 @@ enum TerminalLauncher {
             at: root,
             includingPropertiesForKeys: [.contentModificationDateKey],
             options: [.skipsHiddenFiles]
-        ) else { return }
+        ) else {
+            return
+        }
 
         for entry in entries {
             let values = try? entry.resourceValues(forKeys: [.contentModificationDateKey])
@@ -249,82 +291,163 @@ enum TerminalLauncher {
         return "/bin/bash -lc " + shellSingleQuoted(command)
     }
 
-    private static func runInTerminal(commandScript: String, appPath: String) throws {
+    private static func runInTerminal(commandScripts: [String], appPath: String) throws {
         try ensureApplicationIsRunning(bundleIdentifier: "com.apple.Terminal", appPath: appPath)
 
-        let run = try writeSharedTerminalRun(commandScript: commandScript)
-        let command = appleScriptStringLiteral(scriptFileLauncherCommand(run.scriptURL.path))
+        let runs = try commandScripts.map { try writeSharedTerminalRun(commandScript: $0) }
+       
+        let doScripts = runs
+            .map { "do script \(appleScriptStringLiteral(scriptFileLauncherCommand($0.scriptURL.path)))" }
+            .joined(separator: "\n        ")
+
         let source = """
         tell application id "com.apple.Terminal"
             activate
-            do script \(command)
+            \(doScripts)
         end tell
         """
 
         try runAppleScript(source, failurePrefix: "Failed to open Terminal")
     }
 
-    private static func runInITerm(commandScript: String, appPath: String) throws {
+    private static func runInITerm(commandScripts: [String], appPath: String) throws {
         try ensureApplicationIsRunning(bundleIdentifier: "com.googlecode.iterm2", appPath: appPath)
 
-        let run = try writeSharedTerminalRun(commandScript: commandScript)
-        let command = appleScriptStringLiteral(scriptFileLauncherBashCommand(run.scriptURL.path))
-        let source = """
-        tell application id "com.googlecode.iterm2"
-            activate
-            create window with default profile command \(command)
-        end tell
-        """
+        let runs = try commandScripts.map {
+            try writeSharedTerminalRun(commandScript: $0)
+        }
 
+        let commands = runs.map { appleScriptStringLiteral(scriptFileLauncherBashCommand($0.scriptURL.path)) }
 
-        try runAppleScript(source, failurePrefix: "Failed to open iTerm")
+        do {
+            try runAppleScript(
+                iTermScript(commands: commands, split: commands.count > 1),
+                failurePrefix: "Failed to open iTerm"
+            )
+        } catch {
+            guard commands.count > 1 else {
+                throw error
+            }
 
+            try runAppleScript(
+                iTermScript(commands: commands, split: false),
+                failurePrefix: "Failed to open iTerm"
+            )
+        }
     }
 
-    private static func runInGhostty(commandScript: String, appPath: String, workingDirectory: String) throws {
+    static func iTermScript(commands: [String], split: Bool) -> String {
+        var lines = [
+            "tell application id \"com.googlecode.iterm2\"",
+            "    activate",
+            "    create window with default profile command \(commands[0])"
+        ]
+
+        if split && commands.count > 1 {
+            lines.append("    tell current session of current window")
+
+            for command in commands.dropFirst() {
+                lines.append("        split vertically with default profile command \(command)")
+            }
+
+            lines.append("    end tell")
+        } else {
+            for command in commands.dropFirst() {
+                lines.append("    create window with default profile command \(command)")
+            }
+        }
+
+        lines.append("end tell")
+        return lines.joined(separator: "\n")
+    }
+
+    private static func runInGhostty(commandScripts: [String], appPath: String, workingDirectory: String) throws {
         let bundleId = Bundle(path: appPath)?.bundleIdentifier ?? "com.mitchellh.ghostty"
         let wasRunning = isApplicationRunning(appPath: appPath)
 
         try ensureApplicationIsRunning(bundleIdentifier: bundleId, appPath: appPath)
 
-        let applicationId = appleScriptStringLiteral(bundleId)
         let cwd = appleScriptStringLiteral(workingDirectory)
         // Ghostty is sandboxed. Pointing it at a file inside Commando's app
         // container causes macOS to ask for cross-app data access on every run.
         // Pass the script inline instead, encoded so arbitrary shell content is
         // preserved without exposing a container path.
-        let command = appleScriptStringLiteral(inlineLauncherBashCommand(commandScript))
+        let commands = commandScripts.map { appleScriptStringLiteral(inlineLauncherBashCommand($0)) }
 
-        let source: String
-        if wasRunning {
-            source = """
-            tell application id \(applicationId)
-                activate
-                set cfg to new surface configuration
-                set initial working directory of cfg to \(cwd)
-                set command of cfg to \(command)
-                set wait after command of cfg to true
-                set win to new window with configuration cfg
-            end tell
-            """
-        } else {
-            source = """
-            tell application id \(applicationId)
-                set cfg to new surface configuration
-                set initial working directory of cfg to \(cwd)
-                set command of cfg to \(command)
-                set wait after command of cfg to true
-                set win to new window with configuration cfg
-                activate
-            end tell
-            """
+        do {
+            try runAppleScript(
+                ghosttyScript(
+                    bundleId: bundleId,
+                    cwd: cwd,
+                    commands: commands,
+                    split: commands.count > 1,
+                    activateFirst: wasRunning
+                ),
+                failurePrefix: "Failed to open Ghostty"
+            )
+        } catch {
+            guard commands.count > 1 else {
+                throw error
+            }
+
+
+            try runAppleScript(
+                ghosttyScript(
+                    bundleId: bundleId,
+                    cwd: cwd,
+                    commands: commands,
+                    split: false,
+                    activateFirst: wasRunning
+                ),
+                failurePrefix: "Failed to open Ghostty"
+            )
+        }
+    }
+
+    static func ghosttyScript(
+        bundleId: String,
+        cwd: String,
+        commands: [String],
+        split: Bool,
+        activateFirst: Bool
+    ) -> String {
+        var lines = ["tell application id \(appleScriptStringLiteral(bundleId))"]
+
+        if activateFirst {
+            lines.append("    activate")
         }
 
-        try runAppleScript(source, failurePrefix: "Failed to open Ghostty")
+        for (index, command) in commands.enumerated() {
+            lines.append("    set cfg\(index) to new surface configuration")
+            lines.append("    set initial working directory of cfg\(index) to \(cwd)")
+            lines.append("    set command of cfg\(index) to \(command)")
+            lines.append("    set wait after command of cfg\(index) to true")
+        }
+
+        if split && commands.count > 1 {
+            lines.append("    set win to new window with configuration cfg0")
+            lines.append("    set pane0 to terminal 1 of selected tab of win")
+
+            for index in 1..<commands.count {
+                lines.append("    set pane\(index) to split pane\(index - 1) direction right with configuration cfg\(index)")
+            }
+        } else {
+            for index in commands.indices {
+                lines.append("    set win\(index) to new window with configuration cfg\(index)")
+            }
+        }
+
+        if !activateFirst {
+            lines.append("    activate")
+        }
+
+        lines.append("end tell")
+
+        return lines.joined(separator: "\n")
     }
 
     private static func runInWarp(
-        commandScript: String,
+        commandScripts: [String],
         commandSetName: String,
         appPath: String,
         workingDirectory: String
@@ -356,23 +479,20 @@ enum TerminalLauncher {
         // Warp-specific runner scripts in the already-authorized Warp config
         // directory instead.
         let runRootURL = warpRoot.appendingPathComponent("commando-runs", isDirectory: true)
-        let run = try writeSharedTerminalRun(commandScript: commandScript, rootURL: runRootURL)
-        let command = scriptFileLauncherCommand(run.scriptURL.path)
+        let paneCommands = try commandScripts.map { script -> String in
+            let run = try writeSharedTerminalRun(commandScript: script, rootURL: runRootURL)
+            
+            return scriptFileLauncherCommand(run.scriptURL.path)
+        }
+        
         let tabDirectoryURL = warpRoot.appendingPathComponent("tab_configs", isDirectory: true)
         let tabConfigURL = tabDirectoryURL.appendingPathComponent("\(tabConfigName).toml")
 
-        let toml = """
-        name = "Commando"
-        title = \(tomlDoubleQuoted(title))
-        color = "blue"
-
-        [[panes]]
-        id = "main"
-        type = "terminal"
-        directory = \(tomlDoubleQuoted(workingDirectory))
-        commands = [\(tomlDoubleQuoted(command))]
-        is_focused = true
-        """
+        let toml = warpTabConfigTOML(
+            title: title,
+            workingDirectory: workingDirectory,
+            paneCommands: paneCommands
+        )
 
         do {
             try FileManager.default.createDirectory(
@@ -398,6 +518,72 @@ enum TerminalLauncher {
 
         guard NSWorkspace.shared.open(url) else {
             throw LaunchError.launchFailed("Failed to open Warp: Warp rejected the tab config URL.")
+        }
+    }
+
+    static func warpTabConfigTOML(
+        title: String,
+        workingDirectory: String,
+        paneCommands: [String]
+    ) -> String {
+        var lines = [
+            "name = \"Commando\"",
+            "title = \(tomlDoubleQuoted(title))",
+            "color = \"blue\"",
+            ""
+        ]
+
+        if paneCommands.count == 1 {
+            lines += [
+                "[[panes]]",
+                "id = \"main\"",
+                "type = \"terminal\"",
+                "directory = \(tomlDoubleQuoted(workingDirectory))",
+                "commands = [\(tomlDoubleQuoted(paneCommands[0]))]",
+                "is_focused = true"
+            ]
+            return lines.joined(separator: "\n")
+        }
+
+        let ids = paneCommands.indices.map { "p\($0)" }
+        lines += [
+            "[[panes]]",
+            "id = \"root\"",
+            "split = \"horizontal\"",
+            "children = [\(ids.map(tomlDoubleQuoted).joined(separator: ", "))]",
+            ""
+        ]
+
+        for (index, command) in paneCommands.enumerated() {
+            lines += [
+                "[[panes]]",
+                "id = \(tomlDoubleQuoted(ids[index]))",
+                "type = \"terminal\"",
+                "directory = \(tomlDoubleQuoted(workingDirectory))",
+                "commands = [\(tomlDoubleQuoted(command))]"
+            ]
+            if index == 0 {
+                lines.append("is_focused = true")
+            }
+            lines.append("")
+        }
+
+        return lines.joined(separator: "\n")
+    }
+
+    private static func runInGenericTerminals(
+        commandScripts: [String],
+        appPath: String,
+        appName: String,
+        launchArguments: ((URL) -> [String])? = nil
+    ) throws {
+        for script in commandScripts {
+            try runInGenericTerminal(
+                commandScript: script,
+                appPath: appPath,
+                appName: appName,
+                launchArguments: launchArguments
+            )
         }
     }
 

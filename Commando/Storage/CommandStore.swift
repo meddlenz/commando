@@ -24,14 +24,23 @@ enum ExampleCommandSet {
     static func installIfNeeded() {
         let defaults = UserDefaults.standard
 
-        guard !defaults.bool(forKey: exampleCommandSetRemovedKey) else { return }
-        guard defaults.commandSets.isEmpty else { return }
+        guard !defaults.bool(forKey: exampleCommandSetRemovedKey) else {
+            return
+        }
+        
+        guard defaults.commandSets.isEmpty else {
+            return
+        }
+        
 
         defaults.commandSets = [helloWorld]
     }
 
     static func markRemovedIfNeeded(_ id: UUID) {
-        guard id == self.id else { return }
+        guard id == self.id else {
+            return
+        }
+        
         UserDefaults.standard.set(true, forKey: exampleCommandSetRemovedKey)
     }
 }
@@ -48,7 +57,10 @@ extension UserDefaults {
         }
 
         set {
-            guard let data = Self.encodeCommandSets(newValue) else { return }
+            guard let data = Self.encodeCommandSets(newValue) else {
+                return
+            }
+            
             set(data, forKey: commandSetsKey)
             NotificationCenter.default.post(name: .commandSetsDidChange, object: nil)
         }

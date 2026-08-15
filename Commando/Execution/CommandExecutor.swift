@@ -26,31 +26,43 @@ enum CommandExecutor {
 
     static func run(_ commandSet: CommandSet) throws {
         try open(
-            command: try terminalCommand(for: commandSet),
-            commandSetName: commandSet.name
+            commands: try terminalCommands(for: commandSet),
+            commandSetName: commandSet.name,
+            sessionNames: commandSet.executableSessions.map(\.name)
         )
     }
 
     static func terminalCommand(for commandSet: CommandSet) throws -> String {
+        guard let command = try terminalCommands(for: commandSet).first else {
+            throw ExecutionError.noSteps
+        }
+
+        return command
+    }
+
+    static func terminalCommands(for commandSet: CommandSet) throws -> [String] {
         let serverDetails = SSHConnection.normaliseServerDetails(commandSet.serverDetails)
+        let sessions = commandSet.executableSessions
 
         if let connection = SSHConnection.parse(from: serverDetails) {
-            let remoteSteps = remoteSteps(from: commandSet.nonEmptySteps, for: connection)
-            let remoteScript = SSHShellCommand.remoteScript(from: remoteSteps, keepSessionOpen: true)
+            return sessions.map { session in
+                let remoteSteps = remoteSteps(from: session.nonEmptySteps, for: connection)
+                let remoteScript = SSHShellCommand.remoteScript(from: remoteSteps, keepSessionOpen: true)
 
-            return buildSSHExecution(
-                connection: connection,
-                remoteScript: remoteScript,
-                interactive: true
-            )
+                return buildSSHExecution(
+                    connection: connection,
+                    remoteScript: remoteScript,
+                    interactive: true
+                )
+            }
 
         } else if !serverDetails.isEmpty {
             throw ExecutionError.invalidServerDetails
 
-        } else if commandSet.nonEmptySteps.isEmpty {
+        } else if sessions.isEmpty {
             throw ExecutionError.noSteps
         } else {
-            return commandSet.nonEmptySteps.joined(separator: "\n")
+            return sessions.map { $0.nonEmptySteps.joined(separator: "\n") }
         }
     }
 
@@ -80,11 +92,16 @@ enum CommandExecutor {
         )
     }
 
-    private static func open(command: String, commandSetName: String) throws {
+    private static func open(commands: [String], commandSetName: String, sessionNames: [String]) throws {
         let appPath = TerminalAppSettings.selectedAppPath
 
         do {
-            try TerminalLauncher.open(command: command, commandSetName: commandSetName, appPath: appPath)
+            try TerminalLauncher.open(
+                commands: commands,
+                commandSetName: commandSetName,
+                sessionNames: sessionNames,
+                appPath: appPath
+            )
         } catch {
             throw ExecutionError.terminalLaunchFailed(error.localizedDescription)
         }

@@ -36,8 +36,14 @@ enum UpdateChecker {
             }
 
             let message = decodeChangeLog(changeLog)
-            guard !message.isEmpty else { return }
-            guard UserDefaults.standard.string(forKey: dismissedVersionKey) != remoteVersion else { return }
+            guard !message.isEmpty else {
+                return
+            }
+            
+            guard UserDefaults.standard.string(forKey: dismissedVersionKey) != remoteVersion else {
+                return
+            }
+            
 
             DispatchQueue.main.async {
                 showUpdateAvailable(
@@ -109,7 +115,10 @@ enum UpdateChecker {
         isMacAppStore: Bool = AppDistribution.isMacAppStore
     ) -> URL? {
         let candidate = isMacAppStore ? macAppStoreUrl : macOSUrl
-        guard isAllowedUpdateURL(candidate) else { return nil }
+        guard isAllowedUpdateURL(candidate) else {
+            return nil
+        }
+        
         return candidate
     }
 
@@ -180,7 +189,10 @@ enum UpdateChecker {
                 case .notDetermined:
                     center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
                         DispatchQueue.main.async {
-                            guard granted else { return }
+                            guard granted else {
+                                return
+                            }
+                            
                             deliverUpdateNotification(message: message, updateURL: updateURL)
                         }
                     }
@@ -200,7 +212,10 @@ enum UpdateChecker {
             .filter { !$0.isEmpty }
             .joined(separator: " ")
 
-        guard !displayMessage.isEmpty else { return }
+        guard !displayMessage.isEmpty else {
+            return
+        }
+        
 
         let content = UNMutableNotificationContent()
         content.title = appDisplayName()
@@ -229,7 +244,10 @@ private final class UpdateNotificationDelegate: NSObject, UNUserNotificationCent
     static func installIfNeeded() {
         let center = UNUserNotificationCenter.current()
         
-        guard center.delegate !== shared else { return }
+        guard center.delegate !== shared else {
+            return
+        }
+        
         center.delegate = shared
     }
 

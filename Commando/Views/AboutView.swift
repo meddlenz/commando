@@ -8,19 +8,15 @@ import AppKit
 import SwiftUI
 
 struct AboutView: View {
-    private let appName = AppInfo.name
-    private let version = AppInfo.version
-    private let copyright = AppInfo.copyright
-
     var body: some View {
         VStack(spacing: 16) {
             appIcon
-                .frame(width: 128, height: 128)
+                .frame(width: 64, height: 64)
 
-            Text(appName)
+            Text(AppInfo.name)
                 .font(.system(size: 22, weight: .semibold))
 
-            Text("Version \(version)")
+            Text("Version \(AppInfo.version)")
                 .foregroundColor(.secondary)
 
             Button(action: openCompanyWebsite) {
@@ -32,15 +28,15 @@ struct AboutView: View {
 
 
 
-            Text("Run saved command sets from your menu bar. Chain shell steps locally or over SSH, and open them in your preferred terminal app.")
+            Text("Run saved terminal commands from your menu bar.")
                 .font(.body)
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.horizontal, 8)
 
-            if !copyright.isEmpty {
-                Text(copyright)
+            if !AppInfo.copyright.isEmpty {
+                Text(AppInfo.copyright)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }

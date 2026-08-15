@@ -17,13 +17,26 @@ private struct EditableStep: Identifiable, Equatable {
     }
 }
 
+private struct EditableSession: Identifiable, Equatable {
+    let id: UUID
+
+    var name: String
+    var steps: [EditableStep]
+
+    init(id: UUID = UUID(), name: String = "", steps: [EditableStep] = [EditableStep()]) {
+        self.id = id
+        self.name = name
+        self.steps = steps.isEmpty ? [EditableStep()] : steps
+    }
+}
+
 struct MainView: View {
     @State private var commandSets: [CommandSet] = UserDefaults.standard.commandSets
     @State private var editingID: UUID?
     @State private var name = ""
     @State private var serverDetails = ""
     @State private var isServerConnectionEnabled = false
-    @State private var editableSteps: [EditableStep] = []
+    @State private var editableSessions: [EditableSession] = []
     @State private var isEditing = false
     @State private var validationMessage: String?
 
@@ -185,34 +198,68 @@ struct MainView: View {
 
                 FormSection(
                     title: "Commands",
-                    help: "Command steps are run in order and wait for the previous step to finish."
+                    help: "Steps in a session run in order. Parallel sessions split the window or open additional windows if splitting isn't available."
                 ) {
                     VStack(alignment: .leading, spacing: 8) {
-                        ForEach(editableSteps) { step in
-                            StepRow(
-                                index: (editableSteps.firstIndex(where: { $0.id == step.id }) ?? 0) + 1,
-                                text: stepTextBinding(for: step.id),
-                                onDelete: { deleteStep(id: step.id) }
-                            )
-                            .frame(maxWidth: .infinity)
+                        ForEach(Array(editableSessions.enumerated()), id: \.element.id) { sessionIndex, session in
+                            if sessionIndex > 0 {
+                                Divider()
+                                    .padding(.vertical, 8)
+                            }
+
+                            if editableSessions.count > 1 {
+                                HStack {
+                                    TextField("Session \(sessionIndex + 1)", text: sessionNameBinding(for: session.id))
+                                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                                    
+                                    Button("Remove") {
+                                        removeSession(id: session.id)
+                                    }
+                                    .buttonStyle(BorderlessButtonStyle())
+                                    .foregroundColor(.red)
+                                }
+                            }
+
+                            ForEach(session.steps) { step in
+                                StepRow(
+                                    index: (session.steps.firstIndex(where: { $0.id == step.id }) ?? 0) + 1,
+                                    text: stepTextBinding(sessionID: session.id, stepID: step.id),
+                                    onDelete: { deleteStep(sessionID: session.id, stepID: step.id) }
+                                )
+                                .frame(maxWidth: .infinity)
+                            }
+
+                            
+                            Button(action: { addStep(to: session.id) }) {
+                                HStack {
+                                    systemIcon("plus.circle", fallback: "+")
+                                    .foregroundColor(.accentColor)
+                                    .frame(width: 20, height: 20)
+                                    .contentShape(Rectangle())
+                                    .font(.system(size: 16))
+                                    Text("Add Step")
+                                }
+                                .foregroundColor(.accentColor)
+                            }
+                            .buttonStyle(BorderlessButtonStyle())
+                            .padding(.top, 8)
+                            .frame(maxWidth: .infinity, alignment: .center)
                         }
 
-
-                         Button(action: addStep) {
+                        Button(action: addSession) {
                             HStack {
-                                systemIcon("plus.circle", fallback: "+")
+                                systemIcon("square.split.2x1", fallback: "+|")
                                 .foregroundColor(.accentColor)
                                 .frame(width: 20, height: 20)
                                 .contentShape(Rectangle())
                                 .font(.system(size: 16))
-                                Text("Add Step")
+                                Text("Add Parallel Session")
                             }
                             .foregroundColor(.accentColor)
                         }
                         .buttonStyle(BorderlessButtonStyle())
                         .padding(.top, 12)
                         .frame(maxWidth: .infinity, alignment: .center)
-
                     }
                 }
             }
@@ -297,7 +344,7 @@ struct MainView: View {
         name = ""
         serverDetails = ""
         isServerConnectionEnabled = false
-        editableSteps = [EditableStep()]
+        editableSessions = [EditableSession()]
         isEditing = true
         validationMessage = nil
     }
@@ -307,10 +354,12 @@ struct MainView: View {
         name = commandSet.name
         serverDetails = commandSet.serverDetails
         isServerConnectionEnabled = !commandSet.serverDetails.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        editableSteps = commandSet.steps.map { EditableStep(text: $0) }
+        editableSessions = commandSet.sessions.map { session in
+            EditableSession(name: session.name, steps: session.steps.map { EditableStep(text: $0) })
+        }
 
-        if editableSteps.isEmpty {
-            editableSteps = [EditableStep()]
+        if editableSessions.isEmpty {
+            editableSessions = [EditableSession()]
         }
 
         isEditing = true
@@ -333,10 +382,20 @@ struct MainView: View {
             return
         }
 
-        let stepTexts = editableSteps.map { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) }
-        let nonEmptySteps = stepTexts.filter { !$0.isEmpty }
-        
-        guard !nonEmptySteps.isEmpty || !trimmedServer.isEmpty else {
+        let mapped = editableSessions.map { session in
+            CommandSession(name: session.name, steps: session.steps.map(\.text))
+        }
+
+        let pruned = mapped.filter { session in
+            session.steps.contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        }
+
+        let sessions = pruned.isEmpty ? [CommandSession(name: mapped.first?.name ?? "")] : pruned
+        let hasCommand = sessions.contains { session in
+            session.steps.contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        }
+
+        guard hasCommand || !trimmedServer.isEmpty else {
             validationMessage = "Add at least one command step."
 
             return
@@ -347,7 +406,7 @@ struct MainView: View {
             id: commandSetID,
             name: trimmedName,
             serverDetails: trimmedServer,
-            steps: editableSteps.map(\.text)
+            sessions: sessions
         )
 
         if let editingID, let index = commandSets.firstIndex(where: { $0.id == editingID }) {
@@ -368,28 +427,72 @@ struct MainView: View {
         validationMessage = nil
     }
 
-    private func deleteStep(id: UUID) {
-        editableSteps.removeAll { $0.id == id }
+    private func deleteStep(sessionID: UUID, stepID: UUID) {
+        guard let sessionIndex = editableSessions.firstIndex(where: { $0.id == sessionID }) else {
+            return
+        }
 
-        if editableSteps.isEmpty {
-            editableSteps = [EditableStep()]
+        editableSessions[sessionIndex].steps.removeAll { $0.id == stepID }
+
+        if editableSessions[sessionIndex].steps.isEmpty {
+            editableSessions[sessionIndex].steps = [EditableStep()]
         }
     }
 
-    private func stepTextBinding(for id: UUID) -> Binding<String> {
+    private func stepTextBinding(sessionID: UUID, stepID: UUID) -> Binding<String> {
         Binding(
             get: {
-                editableSteps.first(where: { $0.id == id })?.text ?? ""
+                guard let session = editableSessions.first(where: { $0.id == sessionID }) else {
+                    return ""
+                }
+
+
+                return session.steps.first(where: { $0.id == stepID })?.text ?? ""
             },
             set: { newValue in
-                guard let index = editableSteps.firstIndex(where: { $0.id == id }) else { return }
-                editableSteps[index].text = newValue
+                guard let sessionIndex = editableSessions.firstIndex(where: { $0.id == sessionID }),
+                      let stepIndex = editableSessions[sessionIndex].steps.firstIndex(where: { $0.id == stepID }) else {
+                   
+                    return
+                }
+                editableSessions[sessionIndex].steps[stepIndex].text = newValue
             }
         )
     }
 
-    private func addStep() {
-        editableSteps.append(EditableStep())
+    private func addStep(to sessionID: UUID) {
+        guard let sessionIndex = editableSessions.firstIndex(where: { $0.id == sessionID }) else {
+            return
+        }
+
+        editableSessions[sessionIndex].steps.append(EditableStep())
+    }
+
+    private func sessionNameBinding(for id: UUID) -> Binding<String> {
+        Binding(
+            get: {
+                editableSessions.first(where: { $0.id == id })?.name ?? ""
+            },
+            set: { newValue in
+                guard let index = editableSessions.firstIndex(where: { $0.id == id }) else {
+                    return
+                }
+
+                editableSessions[index].name = newValue
+            }
+        )
+    }
+
+    private func addSession() {
+        editableSessions.append(EditableSession())
+    }
+
+    private func removeSession(id: UUID) {
+        guard editableSessions.count > 1 else {
+            return
+        }
+        
+        editableSessions.removeAll { $0.id == id }
     }
 
     private func deleteCommandSets(at offsets: IndexSet) {
@@ -409,7 +512,11 @@ struct MainView: View {
 
     private func deleteEditingCommandSet() {
         guard let editingID,
-              let index = commandSets.firstIndex(where: { $0.id == editingID }) else { return }
+              let index = commandSets.firstIndex(where: { $0.id == editingID }) else {
+                return
+             }
+
+             
         ExampleCommandSet.markRemovedIfNeeded(editingID)
         KeychainCredentialStore.deletePassword(for: editingID)
         commandSets.remove(at: index)

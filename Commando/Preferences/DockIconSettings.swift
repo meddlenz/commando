@@ -26,7 +26,10 @@ enum DockIconSettings {
     }
 
     static func showDockForOpenWindow() {
-        guard isHidden else { return }
+        guard isHidden else {
+            return
+        }
+
         NSApp.setActivationPolicy(.regular)
     }
 
@@ -45,8 +48,15 @@ enum DockIconSettings {
 
     private static func isOpenAppWindow(_ window: NSWindow) -> Bool {
         let mask = window.styleMask
-        guard mask.contains(.titled) else { return false }
-        guard mask.contains(.closable) || mask.contains(.miniaturizable) else { return false }
+        guard mask.contains(.titled) else {
+            return false
+        }
+
+        
+        guard mask.contains(.closable) || mask.contains(.miniaturizable) else {
+            return false
+        }
+
         return window.isVisible || window.isMiniaturized
     }
 

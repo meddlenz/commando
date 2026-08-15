@@ -123,7 +123,9 @@ enum WarpConfigAccess {
         panel.directoryURL = expectedURL
 
         while panel.runModal() == .OK {
-            guard let url = panel.url else { return false }
+            guard let url = panel.url else {
+                return false
+            }
 
             guard isExpectedConfigDirectory(url, for: appPath) else {
                 let wrongFolder = NSAlert()
@@ -175,7 +177,9 @@ enum WarpConfigAccess {
 
     private static func abbreviatedPath(_ url: URL) -> String {
         let homePath = realUserHomeDirectoryURL.path
-        guard url.path.hasPrefix(homePath) else { return url.path }
+        guard url.path.hasPrefix(homePath) else {
+            return url.path
+        }
         
         return "~" + String(url.path.dropFirst(homePath.count))
     }

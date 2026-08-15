@@ -631,6 +631,7 @@
 				CODE_SIGN_ENTITLEMENTS = Commando/Commando.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Commando/Preview Content\"";
 				DEVELOPMENT_TEAM = 5D3622Q6DB;
 				ENABLE_APP_SANDBOX = YES;
@@ -655,7 +656,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.manticoresw.commando;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -670,6 +671,7 @@
 				CODE_SIGN_ENTITLEMENTS = Commando/Commando.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Commando/Preview Content\"";
 				DEVELOPMENT_TEAM = 5D3622Q6DB;
 				ENABLE_APP_SANDBOX = YES;
@@ -694,7 +696,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.manticoresw.commando;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;

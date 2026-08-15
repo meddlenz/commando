@@ -64,8 +64,14 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
     }
 
     private func centerOnVisibleScreen() {
-        guard let window else { return }
-        guard let visibleFrame = (window.screen ?? NSScreen.main ?? NSScreen.screens.first)?.visibleFrame else { return }
+        guard let window else {
+            return
+        }
+        
+        guard let visibleFrame = (window.screen ?? NSScreen.main ?? NSScreen.screens.first)?.visibleFrame else {
+            return
+        }
+        
 
         var frame = window.frame
 
@@ -75,7 +81,10 @@ final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
     }
 
     private func buildContent() {
-        guard let window else { return }
+        guard let window else {
+            return
+        }
+        
         window.contentViewController = PreferencesTabViewController(hostWindow: window)
     }
 }
@@ -128,8 +137,14 @@ private final class PreferencesTabViewController: NSTabViewController {
     }
 
     private func updateWindowHeight(animated: Bool) {
-        guard let window = hostWindow else { return }
-        guard let contentView = window.contentView else { return }
+        guard let window = hostWindow else {
+            return
+        }
+        
+        guard let contentView = window.contentView else {
+            return
+        }
+        
 
         contentView.layoutSubtreeIfNeeded()
         view.layoutSubtreeIfNeeded()
