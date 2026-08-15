@@ -246,6 +246,9 @@ struct MainView: View {
                             .frame(maxWidth: .infinity, alignment: .center)
                         }
 
+                        Divider()
+                            .padding(.vertical, 8)
+
                         Button(action: addSession) {
                             HStack {
                                 systemIcon("square.split.2x1", fallback: "+|")
