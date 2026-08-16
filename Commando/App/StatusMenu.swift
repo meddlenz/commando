@@ -21,10 +21,11 @@ extension AppDelegate {
 
     func constructMenu() {
         let menu = NSMenu()
-        let commandSets = UserDefaults.standard.commandSets
+        let commandSets = CommandStore.commandSets
 
         if commandSets.isEmpty {
             let emptyItem = NSMenuItem(title: "No command sets configured", action: nil, keyEquivalent: "")
+            
             emptyItem.isEnabled = false
 
             menu.addItem(emptyItem)

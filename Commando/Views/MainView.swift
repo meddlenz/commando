@@ -31,7 +31,7 @@ private struct EditableSession: Identifiable, Equatable {
 }
 
 struct MainView: View {
-    @State private var commandSets: [CommandSet] = UserDefaults.standard.commandSets
+    @State private var commandSets: [CommandSet] = CommandStore.commandSets
     @State private var editingID: UUID?
     @State private var name = ""
     @State private var serverDetails = ""
@@ -52,7 +52,7 @@ struct MainView: View {
         }
          .frame(minWidth: 760, minHeight: 540)
         .onReceive(NotificationCenter.default.publisher(for: .commandSetsDidChange)) { _ in
-            commandSets = UserDefaults.standard.commandSets
+            commandSets = CommandStore.commandSets
         }
     }
 
@@ -209,7 +209,9 @@ struct MainView: View {
 
                             if editableSessions.count > 1 {
                                 HStack {
-                                    TextField("Session \(sessionIndex + 1)", text: sessionNameBinding(for: session.id))
+                                    Text("Session \(sessionIndex + 1)")
+                                        .foregroundColor(.secondary)
+                                    TextField("Name", text: sessionNameBinding(for: session.id))
                                         .textFieldStyle(RoundedBorderTextFieldStyle())
                                     
                                     Button("Remove") {
@@ -418,7 +420,7 @@ struct MainView: View {
             commandSets.append(updated)
         }
 
-        UserDefaults.standard.commandSets = commandSets
+        CommandStore.commandSets = commandSets
         isEditing = false
         editingID = nil
         validationMessage = nil
@@ -506,7 +508,7 @@ struct MainView: View {
         }
 
         commandSets.remove(atOffsets: offsets)
-        UserDefaults.standard.commandSets = commandSets
+        CommandStore.commandSets = commandSets
 
         if let editingID, !commandSets.contains(where: { $0.id == editingID }) {
             cancelEditing()
@@ -523,7 +525,7 @@ struct MainView: View {
         ExampleCommandSet.markRemovedIfNeeded(editingID)
         KeychainCredentialStore.deletePassword(for: editingID)
         commandSets.remove(at: index)
-        UserDefaults.standard.commandSets = commandSets
+        CommandStore.commandSets = commandSets
         
         cancelEditing()
     }

@@ -5,6 +5,7 @@
 //
 
 import AppKit
+import SwiftUI
 
 final class PreferencesWindowController: NSWindowController, NSWindowDelegate {
 
@@ -109,14 +110,14 @@ private final class PreferencesTabViewController: NSTabViewController {
             general.image = NSImage(systemSymbolName: "switch.2", accessibilityDescription: nil)
         }
 
-        let terminal = NSTabViewItem(viewController: TerminalPreferencesViewController())
-        terminal.label = "Terminal"
+        let commandSets = NSTabViewItem(viewController: CommandSetsPreferencesViewController())
+        commandSets.label = "Command Sets"
 
         if #available(macOS 11.0, *) {
-            terminal.image = NSImage(systemSymbolName: "terminal", accessibilityDescription: nil)
+            commandSets.image = NSImage(systemSymbolName: "square.stack", accessibilityDescription: nil)
         }
 
-        tabViewItems = [general, terminal]
+        tabViewItems = [general, commandSets]
 
         hostWindow.setContentSize(NSSize(width: 420, height: 260))
         hostWindow.minSize = NSSize(width: 420, height: 220)
@@ -188,6 +189,13 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
     private let menuBarIconPopup = NSPopUpButton(frame: .zero, pullsDown: false)
     private let menuBarIconStack = NSStackView()
     private let helpLabel = NSTextField(labelWithString: "Commando runs from the menu bar when hidden.")
+    private let terminalHelpLabel = NSTextField(labelWithString: "Terminal choice")
+    private let appIconView = NSImageView()
+    private let appNameLabel = NSTextField(labelWithString: "")
+    private let appPathLabel = NSTextField(labelWithString: "")
+    private let chooseButton = NSButton(title: "Choose Terminal App...", target: nil, action: nil)
+    private let appStack = NSStackView()
+    private let appTextStack = NSStackView()
     private let stack = NSStackView()
 
     override func loadView() {
@@ -212,14 +220,62 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
         hideDockIconCheckbox.target = self
         hideDockIconCheckbox.action = #selector(toggleHideDockIcon)
         stack.addArrangedSubview(hideDockIconCheckbox)
-
-
-        helpLabel.font = .systemFont(ofSize: 11) 
+                helpLabel.font = .systemFont(ofSize: 11) 
         helpLabel.textColor = .secondaryLabelColor
         helpLabel.lineBreakMode = .byWordWrapping
         helpLabel.maximumNumberOfLines = 0
         helpLabel.preferredMaxLayoutWidth = 360
         stack.addArrangedSubview(helpLabel)
+
+        let separator = NSBox()
+        separator.boxType = .separator
+        separator.translatesAutoresizingMaskIntoConstraints = false
+        stack.addArrangedSubview(separator)
+        separator.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
+
+        terminalHelpLabel.font = .systemFont(ofSize: 11)
+        terminalHelpLabel.textColor = .secondaryLabelColor
+        stack.addArrangedSubview(terminalHelpLabel)
+
+        appIconView.imageScaling = .scaleProportionallyUpOrDown
+        appIconView.translatesAutoresizingMaskIntoConstraints = false
+
+        appTextStack.orientation = .vertical
+        appTextStack.alignment = .leading
+        appTextStack.distribution = .fill
+        appTextStack.spacing = 2
+        appTextStack.translatesAutoresizingMaskIntoConstraints = false
+
+        appNameLabel.font = .systemFont(ofSize: 13, weight: .medium)
+        appNameLabel.lineBreakMode = .byTruncatingMiddle
+        appTextStack.addArrangedSubview(appNameLabel)
+
+        appPathLabel.font = .systemFont(ofSize: 11)
+        appPathLabel.textColor = .secondaryLabelColor
+        appPathLabel.lineBreakMode = .byTruncatingMiddle
+        appTextStack.addArrangedSubview(appPathLabel)
+
+        appStack.orientation = .horizontal
+        appStack.alignment = .centerY
+        appStack.distribution = .fill
+        appStack.spacing = 10
+        appStack.translatesAutoresizingMaskIntoConstraints = false
+        appStack.addArrangedSubview(appIconView)
+        appStack.addArrangedSubview(appTextStack)
+        stack.addArrangedSubview(appStack)
+
+
+        chooseButton.target = self
+        chooseButton.action = #selector(chooseTerminalApp)
+        stack.addArrangedSubview(chooseButton)
+
+        let menuBarSeparator = NSBox()
+
+        menuBarSeparator.boxType = .separator
+        menuBarSeparator.translatesAutoresizingMaskIntoConstraints = false
+        stack.addArrangedSubview(menuBarSeparator)
+        menuBarSeparator.widthAnchor.constraint(equalTo: stack.widthAnchor).isActive = true
+
 
         menuBarIconLabel.alignment = .right
 
@@ -248,7 +304,6 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
 
         view = content
 
-
         NSLayoutConstraint.activate([
             stack.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: 20),
             stack.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -20),
@@ -257,6 +312,10 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
             menuBarIconLabel.widthAnchor.constraint(equalToConstant: 90),
             menuBarIconPreview.widthAnchor.constraint(equalToConstant: 18),
             menuBarIconPreview.heightAnchor.constraint(equalToConstant: 18),
+            appIconView.widthAnchor.constraint(equalToConstant: 32),
+            appIconView.heightAnchor.constraint(equalToConstant: 32),
+            appNameLabel.widthAnchor.constraint(equalToConstant: 318),
+            appPathLabel.widthAnchor.constraint(equalToConstant: 318)
         ])
     }
 
@@ -279,6 +338,10 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
 
         menuBarIconPopup.selectItem(withTitle: selectedOption.title)
         menuBarIconPreview.image = MenuBarIconSettings.previewImage(for: selectedOption)
+
+        appIconView.image = NSWorkspace.shared.icon(forFile: TerminalAppSettings.selectedAppPath)
+        appNameLabel.stringValue = TerminalAppSettings.selectedAppName
+        appPathLabel.stringValue = TerminalAppSettings.selectedAppPath
     }
 
     @objc private func toggleLaunchAtLogin() {
@@ -310,6 +373,12 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
         sync()
     }
 
+    @objc private func chooseTerminalApp() {
+        if TerminalAppSettings.promptForApplication() != nil {
+            sync()
+        }
+    }
+
     private func presentPreferenceError(_ error: Error) {
         let alert = NSAlert()
 
@@ -321,17 +390,15 @@ private final class GeneralPreferencesViewController: NSViewController, Preferen
     }
 }
 
-// Terminal
+// Command Sets
 
-private final class TerminalPreferencesViewController: NSViewController, PreferencesSizable {
-    private let helpLabel = NSTextField(labelWithString: "Commands open in this application.")
-    private let appIconView = NSImageView()
-    private let appNameLabel = NSTextField(labelWithString: "")
-    private let appPathLabel = NSTextField(labelWithString: "")
-    private let chooseButton = NSButton(title: "Choose Terminal App...", target: nil, action: nil)
+private final class CommandSetsPreferencesViewController: NSViewController, PreferencesSizable {
+    private let iCloudCheckbox = NSButton(checkboxWithTitle: "Sync via iCloud", target: nil, action: nil)
+    private let helpLabel = NSTextField(labelWithString: "Keeps command sets up to date across Macs using this iCloud account.")
+    private let importButton = NSButton(title: "Import", target: nil, action: nil)
+    private let exportButton = NSButton(title: "Export", target: nil, action: nil)
+    private let buttonStack = NSStackView()
     private let stack = NSStackView()
-    private let appStack = NSStackView()
-    private let appTextStack = NSStackView()
 
     override func loadView() {
         let content = NSView()
@@ -343,47 +410,33 @@ private final class TerminalPreferencesViewController: NSViewController, Prefere
         stack.orientation = .vertical
         stack.alignment = .leading
         stack.distribution = .fill
-        stack.spacing = 10
-
+        stack.spacing = 12
         stack.translatesAutoresizingMaskIntoConstraints = false
         content.addSubview(stack)
 
+        iCloudCheckbox.target = self
+        iCloudCheckbox.action = #selector(toggleiCloudSync)
+        stack.addArrangedSubview(iCloudCheckbox)
+
         helpLabel.font = .systemFont(ofSize: 11)
         helpLabel.textColor = .secondaryLabelColor
+        helpLabel.lineBreakMode = .byWordWrapping
+        helpLabel.maximumNumberOfLines = 0
+        helpLabel.preferredMaxLayoutWidth = 360
         stack.addArrangedSubview(helpLabel)
 
-        appIconView.imageScaling = .scaleProportionallyUpOrDown
-        appIconView.translatesAutoresizingMaskIntoConstraints = false
+        importButton.target = self
+        importButton.action = #selector(importCommandSets)
+        exportButton.target = self
+        exportButton.action = #selector(exportCommandSets)
 
-        appTextStack.orientation = .vertical
-        appTextStack.alignment = .leading
-        appTextStack.distribution = .fill
-        appTextStack.spacing = 2
-        appTextStack.translatesAutoresizingMaskIntoConstraints = false
-
-        appNameLabel.font = .systemFont(ofSize: 13, weight: .medium)
-        appNameLabel.lineBreakMode = .byTruncatingMiddle
-
-        appTextStack.addArrangedSubview(appNameLabel)
-
-        appPathLabel.font = .systemFont(ofSize: 11)
-        appPathLabel.textColor = .secondaryLabelColor
-        appPathLabel.lineBreakMode = .byTruncatingMiddle
-        appTextStack.addArrangedSubview(appPathLabel)
-
-        appStack.orientation = .horizontal
-        appStack.alignment = .centerY
-        appStack.distribution = .fill
-        appStack.spacing = 10
-        appStack.translatesAutoresizingMaskIntoConstraints = false
-        appStack.addArrangedSubview(appIconView)
-        appStack.addArrangedSubview(appTextStack)
-        stack.addArrangedSubview(appStack)
-
-
-        chooseButton.target = self
-        chooseButton.action = #selector(chooseTerminalApp)
-        stack.addArrangedSubview(chooseButton)
+        buttonStack.orientation = .horizontal
+        buttonStack.alignment = .centerY
+        buttonStack.spacing = 8
+        buttonStack.translatesAutoresizingMaskIntoConstraints = false
+        buttonStack.addArrangedSubview(importButton)
+        buttonStack.addArrangedSubview(exportButton)
+        stack.addArrangedSubview(buttonStack)
 
         view = content
 
@@ -392,11 +445,6 @@ private final class TerminalPreferencesViewController: NSViewController, Prefere
             stack.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -20),
             stack.topAnchor.constraint(equalTo: content.topAnchor, constant: 18),
             stack.bottomAnchor.constraint(lessThanOrEqualTo: content.bottomAnchor, constant: -18),
-
-            appIconView.widthAnchor.constraint(equalToConstant: 32),
-            appIconView.heightAnchor.constraint(equalToConstant: 32),
-            appNameLabel.widthAnchor.constraint(equalToConstant: 318),
-            appPathLabel.widthAnchor.constraint(equalToConstant: 318)
         ])
     }
 
@@ -412,15 +460,106 @@ private final class TerminalPreferencesViewController: NSViewController, Prefere
     }
 
     private func sync() {
-        appIconView.image = NSWorkspace.shared.icon(forFile: TerminalAppSettings.selectedAppPath)
-        appNameLabel.stringValue = TerminalAppSettings.selectedAppName
-        appPathLabel.stringValue = TerminalAppSettings.selectedAppPath
+        iCloudCheckbox.state = CommandStore.isCloudSyncEnabled ? .on : .off
     }
 
-    @objc private func chooseTerminalApp() {
-        if TerminalAppSettings.promptForApplication() != nil {
-            sync()
+    @objc private func toggleiCloudSync() {
+        do {
+            try CommandStore.setCloudSyncEnabled(iCloudCheckbox.state == .on)
+        } catch {
+            NSSound.beep()
+            presentPreferenceError(error)
         }
+        sync()
+    }
+
+    @objc private func importCommandSets() {
+        let panel = NSOpenPanel()
+
+        panel.title = "Import Command Sets"
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = false
+         panel.allowedFileTypes = ["json"]
+
+        panel.beginSheetModal(for: view.window!) { [weak self] response in
+            guard response == .OK, let url = panel.url else { return }
+            self?.handleImport(from: url)
+        }
+    }
+
+    @objc private func exportCommandSets() {
+        let panel = NSSavePanel()
+
+        panel.title = "Export Command Sets"
+        panel.nameFieldStringValue = AppStoragePaths.commandSetsFileName
+        panel.allowedFileTypes = ["json"]
+        panel.canCreateDirectories = true
+
+        panel.beginSheetModal(for: view.window!) { [weak self] response in
+            guard response == .OK, let url = panel.url else { return }
+
+            do {
+                 try CommandStore.exportDocument(to: url)
+             } catch {
+                self?.presentPreferenceError(error)
+            }
+        }
+    }
+
+    private func handleImport(from url: URL) {
+        do {
+            let accessed = url.startAccessingSecurityScopedResource()
+
+
+            defer {
+                if accessed {
+                    url.stopAccessingSecurityScopedResource()
+                }
+            }
+            _ = try CommandSetDocument.decode(Data(contentsOf: url))
+        } catch {
+            presentPreferenceError(error)
+            return
+        }
+
+        let alert = NSAlert()
+
+        alert.messageText = "Import Command Sets"
+        alert.informativeText = "Do you want to merge these command sets with your existing ones or replace them?"
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: "Merge")
+        alert.addButton(withTitle: "Replace")
+        alert.addButton(withTitle: "Cancel")
+
+        alert.beginSheetModal(for: view.window!) { [weak self] response in
+            let mode: CommandStore.ImportMode
+            
+            switch response {
+            case .alertFirstButtonReturn:
+                mode = .merge
+            case .alertSecondButtonReturn:
+                mode = .replace
+            default:
+                return
+            }
+
+            do {
+                try CommandStore.importDocument(from: url, mode: mode)
+            } catch {
+                self?.presentPreferenceError(error)
+            }
+        }
+    }
+
+    private func presentPreferenceError(_ error: Error) {
+        let alert = NSAlert()
+
+        alert.messageText = "Unable to update command sets"
+        alert.informativeText = error.localizedDescription
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Ok")
+        alert.beginSheetModal(for: view.window!)
     }
 }
 

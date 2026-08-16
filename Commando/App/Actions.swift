@@ -9,7 +9,7 @@ import Cocoa
 extension AppDelegate {
 
     @objc func runCommandSet(_ sender: NSMenuItem) {
-        let commandSets = UserDefaults.standard.commandSets
+        let commandSets = CommandStore.commandSets
         guard commandSets.indices.contains(sender.tag) else {
             constructMenu()
             return

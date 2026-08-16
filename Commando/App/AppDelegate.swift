@@ -16,6 +16,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         ProcessInfo.processInfo.disableAutomaticTermination("Commando menu bar item")
 
+        CommandStore.start()
         ExampleCommandSet.installIfNeeded()
         applyDockIconPreference()
         UpdateChecker.checkForUpdateIfNeeded()

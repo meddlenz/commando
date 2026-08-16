@@ -351,22 +351,148 @@ class CommandoTests: XCTestCase {
         XCTAssertEqual(UpdateChecker.updateActionTitle(isMacAppStore: true), "View in App Store")
     }
 
-    func testCommandSetsRoundTripThroughEncryptedStorage() {
-        let defaults = UserDefaults.standard
-        let original = defaults.commandSets
-        defer { defaults.commandSets = original }
+    func testCommandSetDocumentEncodesVersion() throws {
+        let commandSet = CommandSet(name: "Dev", steps: ["echo hi"])
+         let data = try CommandSetDocument.encode([commandSet])
+        let json = try XCTUnwrap(String(data: data, encoding: .utf8))
 
-        let sample = [
-            CommandSet(name: "Secure", serverDetails: "user@example.com", steps: ["echo hi"]),
+        XCTAssertTrue(json.contains("\"version\""))
+        XCTAssertTrue(json.contains("1"))
+
+        let payload = try CommandSetDocument.decodePayload(data)
+
+        XCTAssertEqual(payload.version, 1)
+        XCTAssertEqual(payload.commandSets.count, 1)
+        XCTAssertEqual(payload.commandSets[0].name, "Dev")
+        XCTAssertEqual(payload.commandSets[0].nonEmptySteps, ["echo hi"])
+    }
+
+    func testCommandSetDocumentRejectsNewerVersion() {
+        let json = """
+        {"version":99,"commandSets":[]}
+        """.data(using: .utf8)!
+
+        XCTAssertThrowsError(try CommandSetDocument.decode(json)) { error in
+            guard case CommandSetDocument.DocumentError.unsupportedVersion(99) = error else {
+                XCTFail("Expected unsupportedVersion, got \(error)")
+
+                return
+            }
+        }
+    }
+
+    func testCommandSetDocumentDecodesUnversionedArray() throws {
+        let json = """
+        [{"name":"Legacy","steps":["echo hello"]}]
+        """.data(using: .utf8)!
+
+        let commandSets = try CommandSetDocument.decode(json)
+
+        XCTAssertEqual(commandSets.count, 1)
+        XCTAssertEqual(commandSets[0].name, "Legacy")
+        XCTAssertEqual(commandSets[0].nonEmptySteps, ["echo hello"])
+    }
+
+    func testCommandSetDocumentMergesByID() {
+        let sharedID = UUID()
+        let local = [
+            CommandSet(id: sharedID, name: "Local", steps: ["echo local"]),
+            CommandSet(name: "Only Local", steps: ["echo a"]),
         ]
 
-        defaults.commandSets = sample
-        let loaded = defaults.commandSets
+        let imported = [
+            CommandSet(id: sharedID, name: "Imported", steps: ["echo imported"]),
+            CommandSet(name: "Only Imported", steps: ["echo b"]),
+        ]
+
+        let merged = CommandSetDocument.merge(local, with: imported)
+
+        XCTAssertEqual(merged.count, 3)
+        XCTAssertEqual(merged[0].id, sharedID)
+        XCTAssertEqual(merged[0].name, "Imported")
+        XCTAssertEqual(merged[1].name, "Only Local")
+        XCTAssertEqual(merged[2].name, "Only Imported")
+    }
+
+    func testCommandSetDocumentDecodesEncryptedUserDefaultsBlob() throws {
+        let sample = [CommandSet(name: "Secure", serverDetails: "user@example.com", steps: ["echo hi"])]
+        let json = try JSONEncoder().encode(sample)
+
+        let encrypted = try SecureDataStore.encrypt(json)
+        let loaded = try CommandSetDocument.decodeStoredData(encrypted)
 
         XCTAssertEqual(loaded.count, 1)
         XCTAssertEqual(loaded[0].name, "Secure")
         XCTAssertEqual(loaded[0].serverDetails, "user@example.com")
         XCTAssertEqual(loaded[0].nonEmptySteps, ["echo hi"])
+    }
+
+    func testCommandSetsRoundTripThroughJSONFile() {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let originalOverride = CommandStore.storageDirectoryOverride
+
+        CommandStore.storageDirectoryOverride = directory
+        CommandStore.resetCache()
+
+        defer {
+            CommandStore.storageDirectoryOverride = originalOverride
+            CommandStore.resetCache()
+
+            try? FileManager.default.removeItem(at: directory)
+        }
+
+        let sample = [
+            CommandSet(name: "Secure", serverDetails: "user@example.com", steps: ["echo hi"]),
+        ]
+
+        CommandStore.commandSets = sample
+        CommandStore.resetCache()
+
+        let loaded = CommandStore.commandSets
+
+        XCTAssertEqual(loaded.count, 1)
+        XCTAssertEqual(loaded[0].name, "Secure")
+        XCTAssertEqual(loaded[0].serverDetails, "user@example.com")
+        XCTAssertEqual(loaded[0].nonEmptySteps, ["echo hi"])
+        XCTAssertTrue(FileManager.default.fileExists(atPath: directory.appendingPathComponent("command-sets.json").path))
+    }
+
+    func testCommandStoreImportMergeAndReplace() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let originalOverride = CommandStore.storageDirectoryOverride
+
+        CommandStore.storageDirectoryOverride = directory
+        CommandStore.resetCache()
+
+        defer {
+            CommandStore.storageDirectoryOverride = originalOverride
+            CommandStore.resetCache()
+
+            try? FileManager.default.removeItem(at: directory)
+        }
+
+        let sharedID = UUID()
+
+        CommandStore.commandSets = [
+            CommandSet(id: sharedID, name: "Local", steps: ["echo local"]),
+            CommandSet(name: "Keep", steps: ["echo keep"]),
+        ]
+
+        let importURL = directory.appendingPathComponent("import.json")
+        let imported = [
+            CommandSet(id: sharedID, name: "Imported", steps: ["echo imported"]),
+            CommandSet(name: "New", steps: ["echo new"]),
+        ]
+        try CommandSetDocument.encode(imported).write(to: importURL)
+
+        try CommandStore.importDocument(from: importURL, mode: .merge)
+        XCTAssertEqual(CommandStore.commandSets.count, 3)
+        XCTAssertEqual(CommandStore.commandSets[0].name, "Imported")
+        XCTAssertEqual(CommandStore.commandSets[1].name, "Keep")
+        XCTAssertEqual(CommandStore.commandSets[2].name, "New")
+
+        try CommandStore.importDocument(from: importURL, mode: .replace)
+        XCTAssertEqual(CommandStore.commandSets.map(\.name), ["Imported", "New"])
     }
 
     func testSSHKeySetupUsesAskForHostKeyVerification() {
@@ -401,18 +527,26 @@ class CommandoTests: XCTestCase {
 
     func testExampleCommandSetDoesNotReinstallAfterRemoval() {
         let removedKey = "exampleCommandSetRemoved"
-        let originalCommandSets = UserDefaults.standard.commandSets
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let originalOverride = CommandStore.storageDirectoryOverride
+        let originalRemoved = UserDefaults.standard.bool(forKey: removedKey)
 
-        UserDefaults.standard.commandSets = originalCommandSets.filter { $0.id != ExampleCommandSet.id }
+        CommandStore.storageDirectoryOverride = directory
+        CommandStore.resetCache()
+        CommandStore.commandSets = []
         UserDefaults.standard.set(true, forKey: removedKey)
+
+        
         defer {
-            UserDefaults.standard.commandSets = originalCommandSets
-            UserDefaults.standard.removeObject(forKey: removedKey)
+            CommandStore.storageDirectoryOverride = originalOverride
+            CommandStore.resetCache()
+            UserDefaults.standard.set(originalRemoved, forKey: removedKey)
+            try? FileManager.default.removeItem(at: directory)
         }
 
         ExampleCommandSet.installIfNeeded()
 
-        if UserDefaults.standard.commandSets.contains(where: { $0.id == ExampleCommandSet.id }) {
+        if CommandStore.commandSets.contains(where: { $0.id == ExampleCommandSet.id }) {
             XCTFail("Example command set should not install after removal flag is set")
         }
     }
