@@ -8,6 +8,8 @@ import Foundation
 
 enum AppInfo {
     static let companyURL = URL(string: "https://manticore.nz")!
+    static let purchaseURL = URL(string: "https://manticore.nz/commando/purchase")!
+    static let licenseCheckURL = URL(string: "https://proxy.manticore.nz/legacyai/commando/license")!
     static let privacyURL = URL(string: "https://manticore.nz/commando/privacy")!
     static let termsURL = URL(string: "https://manticore.nz/commando/terms")!
 

@@ -8,6 +8,7 @@ import Foundation
 
 enum AppStoragePaths {
     static let commandSetsFileName = "command-sets.json"
+    static let registrationFileName = "registration.dat"
     static let iCloudContainerIdentifier = "iCloud.com.manticoresw.commando"
 
     static var applicationSupportDirectory: URL {
@@ -18,6 +19,10 @@ enum AppStoragePaths {
 
     static var localCommandSetsFileURL: URL {
         applicationSupportDirectory.appendingPathComponent(commandSetsFileName)
+    }
+
+    static var registrationFileURL: URL {
+        applicationSupportDirectory.appendingPathComponent(registrationFileName)
     }
 
     static var terminalRunsDirectory: URL {

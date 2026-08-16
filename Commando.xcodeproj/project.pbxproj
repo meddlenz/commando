@@ -46,6 +46,12 @@
 		CR3VWS082A86F94C00B4DC63 /* StepRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3VWS072A86F94C00B4DC63 /* StepRow.swift */; };
 		CR3VWS102A86F94C00B4DC63 /* ValidationBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3VWS092A86F94C00B4DC63 /* ValidationBanner.swift */; };
 		CR3WCA012A86F94C00B4DC63 /* WarpConfigAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3WCA002A86F94C00B4DC63 /* WarpConfigAccess.swift */; };
+		CR3LIC012A86F94C00B4DC63 /* LicenseSecrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LIC002A86F94C00B4DC63 /* LicenseSecrets.swift */; };
+		CR3LIC013A86F94C00B4DC63 /* LicenseKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LIC003A86F94C00B4DC63 /* LicenseKey.swift */; };
+		CR3LIC014A86F94C00B4DC63 /* LicenseStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LIC004A86F94C00B4DC63 /* LicenseStatus.swift */; };
+		CR3LIC015A86F94C00B4DC63 /* LicenseBanCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LIC005A86F94C00B4DC63 /* LicenseBanCheck.swift */; };
+		CR3REG012A86F94C00B4DC63 /* RegistrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3REG002A86F94C00B4DC63 /* RegistrationView.swift */; };
+		CR3REG013A86F94C00B4DC63 /* RegistrationWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3REG003A86F94C00B4DC63 /* RegistrationWindowController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -112,6 +118,12 @@
 		CR3VWS072A86F94C00B4DC63 /* StepRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StepRow.swift; sourceTree = "<group>"; };
 		CR3VWS092A86F94C00B4DC63 /* ValidationBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ValidationBanner.swift; sourceTree = "<group>"; };
 		CR3WCA002A86F94C00B4DC63 /* WarpConfigAccess.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WarpConfigAccess.swift; sourceTree = "<group>"; };
+		CR3LIC002A86F94C00B4DC63 /* LicenseSecrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseSecrets.swift; sourceTree = "<group>"; };
+		CR3LIC003A86F94C00B4DC63 /* LicenseKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseKey.swift; sourceTree = "<group>"; };
+		CR3LIC004A86F94C00B4DC63 /* LicenseStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseStatus.swift; sourceTree = "<group>"; };
+		CR3LIC005A86F94C00B4DC63 /* LicenseBanCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseBanCheck.swift; sourceTree = "<group>"; };
+		CR3REG002A86F94C00B4DC63 /* RegistrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationView.swift; sourceTree = "<group>"; };
+		CR3REG003A86F94C00B4DC63 /* RegistrationWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationWindowController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -164,6 +176,7 @@
 			children = (
 				CR3GRP012A86F94C00B4DC63 /* App */,
 				CR3GRP022A86F94C00B4DC63 /* Models */,
+				CR3GRP0A2A86F94C00B4DC63 /* Licensing */,
 				CR3GRP032A86F94C00B4DC63 /* Storage */,
 				CR3GRP042A86F94C00B4DC63 /* Execution */,
 				CR3GRP052A86F94C00B4DC63 /* SSH */,
@@ -277,6 +290,7 @@
 			children = (
 				171A9C8C2A87010400B4DC63 /* SettingsWindowController.swift */,
 				CR3ABW002A86F94C00B4DC63 /* AboutWindowController.swift */,
+				CR3REG003A86F94C00B4DC63 /* RegistrationWindowController.swift */,
 			);
 			path = Windows;
 			sourceTree = "<group>";
@@ -286,6 +300,7 @@
 			children = (
 				171A9C8A2A86FB4F00B4DC63 /* MainView.swift */,
 				CR3ABV002A86F94C00B4DC63 /* AboutView.swift */,
+				CR3REG002A86F94C00B4DC63 /* RegistrationView.swift */,
 				CR3VWS012A86F94C00B4DC63 /* SystemIcon.swift */,
 				CR3VWS032A86F94C00B4DC63 /* CommandSetSidebarRow.swift */,
 				CR3VWS052A86F94C00B4DC63 /* FormSection.swift */,
@@ -301,6 +316,17 @@
 				CR3UPD002A86F94C00B4DC63 /* UpdateChecker.swift */,
 			);
 			path = Utilities;
+			sourceTree = "<group>";
+		};
+		CR3GRP0A2A86F94C00B4DC63 /* Licensing */ = {
+			isa = PBXGroup;
+			children = (
+				CR3LIC002A86F94C00B4DC63 /* LicenseSecrets.swift */,
+				CR3LIC003A86F94C00B4DC63 /* LicenseKey.swift */,
+				CR3LIC004A86F94C00B4DC63 /* LicenseStatus.swift */,
+				CR3LIC005A86F94C00B4DC63 /* LicenseBanCheck.swift */,
+			);
+			path = Licensing;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

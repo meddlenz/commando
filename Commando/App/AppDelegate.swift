@@ -34,6 +34,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             name: .preferencesDidChange,
             object: nil
         )
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(licenseDidChange(_:)),
+            name: .licenseDidChange,
+            object: nil
+        )
+
+        LicenseStatus.refreshBanStatus()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
@@ -48,6 +57,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func preferencesDidChange(_ notification: Notification) {
         applyDockIconPreference()
+    }
+
+    @objc private func licenseDidChange(_ notification: Notification) {
+        constructMenu()
     }
 
     private func applyDockIconPreference() {

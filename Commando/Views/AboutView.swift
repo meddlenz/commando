@@ -8,6 +8,8 @@ import AppKit
 import SwiftUI
 
 struct AboutView: View {
+    @State private var licenseRevision = 0
+
     var body: some View {
         VStack(spacing: 16) {
             appIcon
@@ -25,6 +27,17 @@ struct AboutView: View {
                     .foregroundColor(.accentColor)
             }
             .buttonStyle(PlainButtonStyle())
+
+            if let registeredLine = LicenseStatus.registeredLine {
+                Text(registeredLine)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .id(licenseRevision)
+            } else if AppDistribution.usesDirectLicensing {
+                Button("Enter license key", action: { RegistrationWindowController.show() })
+                    .buttonStyle(PlainButtonStyle())
+                    .foregroundColor(.accentColor)
+            }
 
 
 
@@ -50,9 +63,6 @@ struct AboutView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
 
-                Text("·")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
 
                 Button(action: { openURL(AppInfo.termsURL) }) {
                     Text("Terms of Use")
@@ -65,6 +75,10 @@ struct AboutView: View {
         }
         .padding(32)
         .frame(width: 380)
+        .onReceive(NotificationCenter.default.publisher(for: .licenseDidChange)) { _ in
+            licenseRevision += 1
+        }
+
     }
 
     @ViewBuilder

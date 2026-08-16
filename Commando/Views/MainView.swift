@@ -54,6 +54,9 @@ struct MainView: View {
         .onReceive(NotificationCenter.default.publisher(for: .commandSetsDidChange)) { _ in
             commandSets = CommandStore.commandSets
         }
+        .onReceive(NotificationCenter.default.publisher(for: .licenseDidChange)) { _ in
+            commandSets = CommandStore.commandSets
+        }
     }
 
     // Sidebar
@@ -345,6 +348,13 @@ struct MainView: View {
     }
 
     private func startCreating() {
+        do {
+            try LicenseStatus.ensureCanAddCommandSet(existingCount: commandSets.count)
+        } catch {
+            validationMessage = error.localizedDescription
+            return
+        }
+
         editingID = nil
         name = ""
         serverDetails = ""
@@ -402,6 +412,18 @@ struct MainView: View {
 
         guard hasCommand || !trimmedServer.isEmpty else {
             validationMessage = "Add at least one command step."
+
+            return
+        }
+
+        do {
+            try LicenseStatus.ensureCanSaveSessions(sessions.count)
+
+            if editingID == nil {
+                try LicenseStatus.ensureCanAddCommandSet(existingCount: commandSets.count)
+            }
+        } catch {
+            validationMessage = error.localizedDescription
 
             return
         }
@@ -489,6 +511,14 @@ struct MainView: View {
     }
 
     private func addSession() {
+        do {
+            try LicenseStatus.ensureCanAddSession()
+        } catch {
+            validationMessage = error.localizedDescription
+            
+            return
+        }
+
         editableSessions.append(EditableSession())
     }
 

@@ -460,14 +460,16 @@ class CommandoTests: XCTestCase {
     func testCommandStoreImportMergeAndReplace() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         let originalOverride = CommandStore.storageDirectoryOverride
+        let originalStoreUnlock = LicenseStatus.isMacAppStoreOverride
 
         CommandStore.storageDirectoryOverride = directory
         CommandStore.resetCache()
+        LicenseStatus.isMacAppStoreOverride = true
 
         defer {
             CommandStore.storageDirectoryOverride = originalOverride
             CommandStore.resetCache()
-
+            LicenseStatus.isMacAppStoreOverride = originalStoreUnlock
             try? FileManager.default.removeItem(at: directory)
         }
 
@@ -548,6 +550,174 @@ class CommandoTests: XCTestCase {
 
         if CommandStore.commandSets.contains(where: { $0.id == ExampleCommandSet.id }) {
             XCTFail("Example command set should not install after removal flag is set")
+        }
+    }
+
+    func testLicenseKeyRoundTripAndRejectsInvalidKey() {
+        let name = "Jordan Trbuhovic"
+        let email = "jordan@example.com"
+        let key = LicenseKey.generate(name: name, email: email)
+
+        XCTAssertEqual(key.split(separator: "-").count, 6)
+        XCTAssertTrue(LicenseKey.isValid(name: name, email: email, key: key))
+        XCTAssertTrue(LicenseKey.isValid(name: "  Jordan   Trbuhovic  ", email: "Jordan@Example.com", key: key.lowercased()))
+        XCTAssertFalse(LicenseKey.isValid(name: name, email: email, key: "AAAAA-BBBBB-CCCCC-DDDDD"))
+        XCTAssertFalse(LicenseKey.isValid(name: name, email: "other@example.com", key: key))
+    }
+
+    func testLicenseStatusUnlocksForAppStoreOverride() {
+        let original = LicenseStatus.isMacAppStoreOverride
+        LicenseStatus.isMacAppStoreOverride = true
+        defer { LicenseStatus.isMacAppStoreOverride = original }
+
+        XCTAssertTrue(LicenseStatus.isUnlocked)
+        XCTAssertEqual(LicenseStatus.registeredLine, "Registered via the Mac App Store")
+    }
+
+    func testLicenseStatusRegisterPersistsValidKey() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let originalStore = LicenseStatus.isMacAppStoreOverride
+        let originalDirectory = LicenseStatus.storageDirectoryOverride
+        let defaults = UserDefaults.standard
+        let originalName = defaults.string(forKey: "licenseName")
+        let originalEmail = defaults.string(forKey: "licenseEmail")
+        let originalKey = defaults.string(forKey: "licenseKey")
+        let originalBan = LicenseBanCheck.responseOverride
+        LicenseStatus.isMacAppStoreOverride = false
+        LicenseStatus.storageDirectoryOverride = directory
+        LicenseBanCheck.responseOverride = false
+        defer {
+            LicenseStatus.isMacAppStoreOverride = originalStore
+            LicenseStatus.storageDirectoryOverride = originalDirectory
+            LicenseBanCheck.responseOverride = originalBan
+            defaults.set(originalName, forKey: "licenseName")
+            defaults.set(originalEmail, forKey: "licenseEmail")
+            defaults.set(originalKey, forKey: "licenseKey")
+            try? FileManager.default.removeItem(at: directory)
+        }
+
+        XCTAssertFalse(LicenseStatus.isUnlocked)
+
+        let name = "Pat Example"
+        let email = "pat@example.com"
+        try LicenseStatus.register(name: name, email: email, key: LicenseKey.generate(name: name, email: email))
+
+        XCTAssertTrue(FileManager.default.fileExists(atPath: LicenseStatus.registrationFileURL.path))
+        let stored = try Data(contentsOf: LicenseStatus.registrationFileURL)
+        XCTAssertNil(stored.range(of: Data(email.utf8)))
+        XCTAssertTrue(LicenseStatus.isUnlocked)
+        XCTAssertEqual(LicenseStatus.registeredLine, "Registered to: Pat Example")
+        XCTAssertThrowsError(try LicenseStatus.register(name: name, email: email, key: "nope"))
+    }
+
+    func testLicenseKeyBanTokenIsStableTwelveCharacters() {
+        let name = "Jordan Trbuhovic"
+        let email = "jordan@example.com"
+        let key = LicenseKey.generate(name: name, email: email)
+        let token = LicenseKey.banToken(from: key)
+
+        XCTAssertEqual(token.count, 12)
+        XCTAssertEqual(token, LicenseKey.banToken(from: key.lowercased()))
+        XCTAssertEqual(token, LicenseKey.banToken(from: LicenseKey.normalized(key)))
+        XCTAssertFalse(token.contains("-"))
+    }
+
+    func testLicenseBanCheckParsesJSONBody() {
+        XCTAssertEqual(LicenseBanCheck.parseResponse(data: Data("{\"banned\":true}".utf8)), true)
+        XCTAssertEqual(LicenseBanCheck.parseResponse(data: Data("{\"banned\":false}".utf8)), false)
+        XCTAssertNil(LicenseBanCheck.parseResponse(data: Data("not-json".utf8)))
+        XCTAssertNil(LicenseBanCheck.parseResponse(data: Data("{}".utf8)))
+
+        let url = LicenseBanCheck.requestURL(token: "ABCDEF123456")
+        XCTAssertEqual(url?.host, "proxy.manticore.nz")
+        XCTAssertTrue(url?.query?.contains("token=ABCDEF123456") == true)
+    }
+
+    func testLicenseStatusClearRemovesRegistrationFile() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let originalStore = LicenseStatus.isMacAppStoreOverride
+        let originalDirectory = LicenseStatus.storageDirectoryOverride
+        let originalBan = LicenseBanCheck.responseOverride
+        LicenseStatus.isMacAppStoreOverride = false
+        LicenseStatus.storageDirectoryOverride = directory
+        LicenseBanCheck.responseOverride = false
+        defer {
+            LicenseStatus.isMacAppStoreOverride = originalStore
+            LicenseStatus.storageDirectoryOverride = originalDirectory
+            LicenseBanCheck.responseOverride = originalBan
+            try? FileManager.default.removeItem(at: directory)
+        }
+
+        let name = "Pat Example"
+        let email = "pat@example.com"
+        try LicenseStatus.register(name: name, email: email, key: LicenseKey.generate(name: name, email: email))
+        XCTAssertTrue(LicenseStatus.isUnlocked)
+
+        LicenseStatus.clear()
+
+        XCTAssertFalse(FileManager.default.fileExists(atPath: LicenseStatus.registrationFileURL.path))
+        XCTAssertFalse(LicenseStatus.isUnlocked)
+        XCTAssertNil(LicenseStatus.registeredLine)
+    }
+
+    func testLicenseStatusRejectsBannedKey() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let originalStore = LicenseStatus.isMacAppStoreOverride
+        let originalDirectory = LicenseStatus.storageDirectoryOverride
+        let originalBan = LicenseBanCheck.responseOverride
+        LicenseStatus.isMacAppStoreOverride = false
+        LicenseStatus.storageDirectoryOverride = directory
+        LicenseBanCheck.responseOverride = true
+        defer {
+            LicenseStatus.isMacAppStoreOverride = originalStore
+            LicenseStatus.storageDirectoryOverride = originalDirectory
+            LicenseBanCheck.responseOverride = originalBan
+            try? FileManager.default.removeItem(at: directory)
+        }
+
+        let name = "Pat Example"
+        let email = "pat@example.com"
+        XCTAssertThrowsError(try LicenseStatus.register(name: name, email: email, key: LicenseKey.generate(name: name, email: email))) { error in
+            guard case LicenseStatus.RegistrationError.revoked = error else {
+                XCTFail("Expected revoked, got \(error)")
+                return
+            }
+        }
+        XCTAssertFalse(FileManager.default.fileExists(atPath: LicenseStatus.registrationFileURL.path))
+        XCTAssertFalse(LicenseStatus.isUnlocked)
+    }
+
+    func testLicenseStatusBlocksUnregisteredImport() throws {
+        let originalStore = LicenseStatus.isMacAppStoreOverride
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let originalOverride = CommandStore.storageDirectoryOverride
+        let originalLicenseDirectory = LicenseStatus.storageDirectoryOverride
+
+        LicenseStatus.isMacAppStoreOverride = false
+        LicenseStatus.storageDirectoryOverride = directory
+        CommandStore.storageDirectoryOverride = directory
+        CommandStore.resetCache()
+        CommandStore.commandSets = [CommandSet(name: "One", steps: ["echo 1"])]
+
+        defer {
+            LicenseStatus.isMacAppStoreOverride = originalStore
+            LicenseStatus.storageDirectoryOverride = originalLicenseDirectory
+            CommandStore.storageDirectoryOverride = originalOverride
+            CommandStore.resetCache()
+            try? FileManager.default.removeItem(at: directory)
+        }
+
+        let importURL = directory.appendingPathComponent("import.json")
+        try CommandSetDocument.encode([
+            CommandSet(name: "Two", steps: ["echo 2"]),
+            CommandSet(name: "Three", steps: ["echo 3"]),
+        ]).write(to: importURL)
+
+        XCTAssertThrowsError(try CommandStore.importDocument(from: importURL, mode: .replace)) { error in
+            guard case LicenseStatus.RegistrationError.registrationRequired = error else {
+                XCTFail("Expected registrationRequired, got \(error)")
+                return
+            }
         }
     }
 }

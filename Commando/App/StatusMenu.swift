@@ -66,6 +66,24 @@ extension AppDelegate {
         menu.addItem(preferencesMenuItem)
         menu.addItem(NSMenuItem.separator())
 
+        if AppDistribution.usesDirectLicensing, !LicenseStatus.isUnlocked {
+            let purchaseItem = NSMenuItem(
+                title: "Purchase Commando",
+                action: #selector(openPurchase),
+                keyEquivalent: ""
+            )
+            purchaseItem.target = self
+            menu.addItem(purchaseItem)
+
+            let registerItem = NSMenuItem(
+                title: "Enter license key",
+                action: #selector(openRegistration),
+                keyEquivalent: ""
+            )
+            registerItem.target = self
+            menu.addItem(registerItem)
+        }
+
         let aboutMenuItem = NSMenuItem(title: "About", action: #selector(openAbout), keyEquivalent: "")
         aboutMenuItem.target = self
         menu.addItem(aboutMenuItem)

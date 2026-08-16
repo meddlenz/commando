@@ -11,6 +11,10 @@ final class AboutWindowController: NSWindowController, NSWindowDelegate {
 
     private static var sharedInstance: AboutWindowController?
 
+    private var keyMonitor: Any?
+    private var pendingCombKey: String?
+    private var pendingCombAt: Date?
+
     static func show() {
         DockIconSettings.showDockForOpenWindow()
 
@@ -46,6 +50,7 @@ final class AboutWindowController: NSWindowController, NSWindowDelegate {
         window.delegate = self
         
         centerTitle("About", in: window)
+        installResetCombMonitor()
     }
 
     required init?(coder: NSCoder) {
@@ -53,6 +58,8 @@ final class AboutWindowController: NSWindowController, NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
+        pendingCombKey = nil
+        pendingCombAt = nil
         DockIconSettings.refreshAfterWindowClosed()
     }
 
@@ -60,6 +67,54 @@ final class AboutWindowController: NSWindowController, NSWindowDelegate {
         super.showWindow(sender)
         window?.makeKeyAndOrderFront(sender)
         window?.orderFrontRegardless()
+    }
+
+    private func installResetCombMonitor() {
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            self?.handleResetComb(event)
+            
+            return event
+        }
+    }
+
+    private func handleResetComb(_ event: NSEvent) {
+        guard window?.isKeyWindow == true else {
+            return
+        }
+
+        guard event.modifierFlags.contains(.command) else {
+            pendingCombKey = nil
+            pendingCombAt = nil
+
+            return
+        }
+
+        let character = event.charactersIgnoringModifiers?.lowercased()
+        guard character == "d" || character == "r" else {
+            pendingCombKey = nil
+            pendingCombAt = nil
+            return
+        }
+
+        if let pendingCombKey,
+           pendingCombKey != character,
+           let pendingCombAt,
+           Date().timeIntervalSince(pendingCombAt) <= 1.5 {
+            self.pendingCombKey = nil
+            self.pendingCombAt = nil
+
+            guard AppDistribution.usesDirectLicensing else {
+                return
+            }
+
+            LicenseStatus.clear()
+            RegistrationWindowController.show()
+            
+            return
+        }
+
+        pendingCombKey = character
+        pendingCombAt = Date()
     }
 
     private func centerTitle(_ title: String, in window: NSWindow) {
@@ -83,4 +138,3 @@ final class AboutWindowController: NSWindowController, NSWindowDelegate {
         ])
     }
 }
-

@@ -4,6 +4,7 @@
 
 .DerivedData/
 .DS_Store
+Release.md
 
 ## User settings
 xcuserdata/
@@ -33,6 +34,7 @@ playground.xcworkspace
 # .swiftpm
 
 .build/
+build/
 
 # CocoaPods
 #

@@ -166,13 +166,17 @@ enum CommandStore {
 
         let data = try Data(contentsOf: url)
         let imported = try CommandSetDocument.decode(data)
+        let next: [CommandSet]
 
         switch mode {
         case .replace:
-            commandSets = imported
+            next = imported
         case .merge:
-            commandSets = CommandSetDocument.merge(commandSets, with: imported)
+            next = CommandSetDocument.merge(commandSets, with: imported)
         }
+
+        try LicenseStatus.ensureCanImport(resultingCount: next.count)
+        commandSets = next
     }
 
     static func exportDocument(to url: URL) throws {

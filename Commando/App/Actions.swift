@@ -62,6 +62,27 @@ extension AppDelegate {
         }
     }
 
+    @objc func openRegistration() {
+        guard AppDistribution.usesDirectLicensing else {
+            return
+        }
+
+        DockIconSettings.showDockForOpenWindow()
+        RegistrationWindowController.show()
+
+        DispatchQueue.main.async {
+            NSApp.activate(ignoringOtherApps: true)
+        }
+    }
+
+    @objc func openPurchase() {
+        guard AppDistribution.usesDirectLicensing else {
+            return
+        }
+
+        NSWorkspace.shared.open(AppInfo.purchaseURL)
+    }
+
     @objc func quit() {
         NSApp.terminate(nil)
     }
