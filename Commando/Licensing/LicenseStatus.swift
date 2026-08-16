@@ -13,10 +13,10 @@ extension Notification.Name {
 
 enum LicenseStatus {
     enum RegistrationError: LocalizedError {
+        case revoked
+        case registrationRequired
         case missingFields
         case invalidKey
-        case registrationRequired
-        case revoked
 
         var errorDescription: String? {
             switch self {
@@ -27,7 +27,7 @@ enum LicenseStatus {
             case .registrationRequired:
                 return "Please purchase Commando to unlock it's full capabilities."
             case .revoked:
-                return "This license has been revoked."
+                return "This license has been revoked. Please get in touch with Manticore Software."
             }
         }
     }
@@ -37,8 +37,10 @@ enum LicenseStatus {
     private static let legacyKeyKey = "licenseKey"
 
     static var isMacAppStoreOverride: Bool?
+    static var isRevokedOverride: Bool?
     static var storageDirectoryOverride: URL?
     private static var cachedBanned: Bool?
+    private static var banCheckID: UInt64 = 0
 
     static var registrationFileURL: URL {
         if let storageDirectoryOverride {
@@ -53,7 +55,7 @@ enum LicenseStatus {
             return true
         }
 
-        if cachedBanned == true {
+        if isRevoked {
             return false
         }
 
@@ -64,17 +66,25 @@ enum LicenseStatus {
         isMacAppStoreOverride ?? AppDistribution.isMacAppStore
     }
 
-    static var registeredLine: String? {
+    static var isRevoked: Bool {
         if isPurchasedFromAppStore {
-            return "Purchased via the Mac App Store"
+            return false
         }
 
-        if cachedBanned == true {
+        return isRevokedOverride ?? (cachedBanned == true)
+    }
+
+    static var registeredLine: String? {
+        if isRevoked {
             return nil
         }
 
         if hasValidStoredKey, let name = storedName, !name.isEmpty {
             return "Registered to: \(name)"
+        }
+
+        if isPurchasedFromAppStore {
+            return "Purchased via the Mac App Store"
         }
 
         return nil
@@ -109,11 +119,13 @@ enum LicenseStatus {
             )
         )
         cachedBanned = false
+        banCheckID += 1
         clearLegacyDefaults()
         NotificationCenter.default.post(name: .licenseDidChange, object: nil)
     }
 
     static func clear() {
+        banCheckID += 1
         cachedBanned = nil
         try? FileManager.default.removeItem(at: registrationFileURL)
 
@@ -138,10 +150,21 @@ enum LicenseStatus {
             return
         }
 
+        let checkID = banCheckID
         DispatchQueue.global(qos: .utility).async {
-            let banned = LicenseBanCheck.isBanned(token: LicenseKey.banToken(from: record.key))
            
-             DispatchQueue.main.async {
+            let banned = LicenseBanCheck.isBanned(token: LicenseKey.banToken(from: record.key))
+
+            DispatchQueue.main.async {
+                guard checkID == banCheckID else {
+                    return
+                }
+
+                guard hasValidStoredKey else {
+                    cachedBanned = nil
+                    return
+                }
+
                 cachedBanned = banned
                 NotificationCenter.default.post(name: .licenseDidChange, object: nil)
             }
@@ -149,35 +172,52 @@ enum LicenseStatus {
     }
 
     static func ensureCanAddCommandSet(existingCount: Int) throws {
-        guard !isUnlocked, existingCount >= 1 else {
+        guard AppDistribution.usesDirectLicensing, !isUnlocked, existingCount >= 1 else {
             return
-            }
-     
-        throw RegistrationError.registrationRequired
+        }
+
+        throw restrictionError
     }
 
     static func ensureCanAddSession() throws {
-        guard !isUnlocked else {
+        guard AppDistribution.usesDirectLicensing, !isUnlocked else {
             return
         }
-     
-        throw RegistrationError.registrationRequired
+
+        throw restrictionError
     }
 
     static func ensureCanSaveSessions(_ count: Int) throws {
-        guard !isUnlocked, count > 1 else {
+        guard AppDistribution.usesDirectLicensing, !isUnlocked, count > 1 else {
             return
-            }
-     
-        throw RegistrationError.registrationRequired
+        }
+
+        throw restrictionError
     }
 
     static func ensureCanImport(resultingCount: Int) throws {
-        guard !isUnlocked, resultingCount > 1 else {
+        guard AppDistribution.usesDirectLicensing, !isUnlocked, resultingCount > 1 else {
             return
-         }
-     
-        throw RegistrationError.registrationRequired
+        }
+
+        throw restrictionError
+    }
+
+    static func ensureCanRun(commandSet: CommandSet) throws {
+        guard AppDistribution.usesDirectLicensing, !isUnlocked else {
+            return
+        }
+
+        let isFirstCommandSet = CommandStore.commandSets.first?.id == commandSet.id
+        let hasParallelSessions = commandSet.executableSessions.count > 1
+
+        guard isFirstCommandSet, !hasParallelSessions else {
+            throw restrictionError
+        }
+    }
+
+    private static var restrictionError: RegistrationError {
+        isRevoked ? .revoked : .registrationRequired
     }
 
     private struct Record: Codable {

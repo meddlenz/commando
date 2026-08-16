@@ -571,7 +571,7 @@ class CommandoTests: XCTestCase {
         defer { LicenseStatus.isMacAppStoreOverride = original }
 
         XCTAssertTrue(LicenseStatus.isUnlocked)
-        XCTAssertEqual(LicenseStatus.registeredLine, "Registered via the Mac App Store")
+        XCTAssertEqual(LicenseStatus.registeredLine, "Purchased via the Mac App Store")
     }
 
     func testLicenseStatusRegisterPersistsValidKey() throws {
@@ -685,6 +685,143 @@ class CommandoTests: XCTestCase {
         }
         XCTAssertFalse(FileManager.default.fileExists(atPath: LicenseStatus.registrationFileURL.path))
         XCTAssertFalse(LicenseStatus.isUnlocked)
+    }
+
+    func testRevokedLicenseAppliesUnregisteredLimits() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let originalStore = LicenseStatus.isMacAppStoreOverride
+        let originalRevoked = LicenseStatus.isRevokedOverride
+        let originalLicenseDirectory = LicenseStatus.storageDirectoryOverride
+        let originalCommandDirectory = CommandStore.storageDirectoryOverride
+
+        LicenseStatus.isMacAppStoreOverride = false
+        LicenseStatus.isRevokedOverride = true
+        LicenseStatus.storageDirectoryOverride = directory
+        CommandStore.storageDirectoryOverride = directory
+        CommandStore.resetCache()
+
+        defer {
+            LicenseStatus.isMacAppStoreOverride = originalStore
+            LicenseStatus.isRevokedOverride = originalRevoked
+            LicenseStatus.storageDirectoryOverride = originalLicenseDirectory
+            CommandStore.storageDirectoryOverride = originalCommandDirectory
+            CommandStore.resetCache()
+            try? FileManager.default.removeItem(at: directory)
+        }
+
+        let first = CommandSet(name: "One", steps: ["echo 1"])
+        let second = CommandSet(name: "Two", steps: ["echo 2"])
+        CommandStore.commandSets = [first, second]
+
+        XCTAssertTrue(LicenseStatus.isRevoked)
+        XCTAssertFalse(LicenseStatus.isUnlocked)
+        XCTAssertEqual(
+            LicenseStatus.RegistrationError.revoked.localizedDescription,
+            "This license has been revoked. Please get in touch with Manticore Software."
+        )
+
+        XCTAssertThrowsError(try LicenseStatus.ensureCanAddCommandSet(existingCount: 2)) { error in
+            guard case LicenseStatus.RegistrationError.revoked = error else {
+                XCTFail("Expected revoked, got \(error)")
+                return
+            }
+        }
+
+        XCTAssertNoThrow(try LicenseStatus.ensureCanRun(commandSet: first))
+        XCTAssertThrowsError(try LicenseStatus.ensureCanRun(commandSet: second)) { error in
+            guard case LicenseStatus.RegistrationError.revoked = error else {
+                XCTFail("Expected revoked, got \(error)")
+                return
+            }
+        }
+
+        XCTAssertThrowsError(try CommandExecutor.run(second)) { error in
+            guard case LicenseStatus.RegistrationError.revoked = error else {
+                XCTFail("Expected revoked, got \(error)")
+                return
+            }
+        }
+
+        let multiSession = CommandSet(
+            name: "Multi",
+            sessions: [
+                CommandSession(name: "A", steps: ["echo 1"]),
+                CommandSession(name: "B", steps: ["echo 2"]),
+            ]
+        )
+        CommandStore.commandSets = [multiSession]
+
+        XCTAssertThrowsError(try LicenseStatus.ensureCanRun(commandSet: multiSession)) { error in
+            guard case LicenseStatus.RegistrationError.revoked = error else {
+                XCTFail("Expected revoked, got \(error)")
+                return
+            }
+        }
+    }
+
+    func testUnregisteredLicenseCanUseFreeAllowances() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let originalStore = LicenseStatus.isMacAppStoreOverride
+        let originalRevoked = LicenseStatus.isRevokedOverride
+        let originalLicenseDirectory = LicenseStatus.storageDirectoryOverride
+        let originalBan = LicenseBanCheck.responseOverride
+
+        let originalCommandDirectory = CommandStore.storageDirectoryOverride
+
+        LicenseStatus.isMacAppStoreOverride = false
+        LicenseStatus.isRevokedOverride = true
+        LicenseStatus.storageDirectoryOverride = directory
+        LicenseBanCheck.responseOverride = true
+        CommandStore.storageDirectoryOverride = directory
+        CommandStore.resetCache()
+        defer {
+            LicenseStatus.isMacAppStoreOverride = originalStore
+            LicenseStatus.isRevokedOverride = originalRevoked
+            LicenseStatus.storageDirectoryOverride = originalLicenseDirectory
+            LicenseBanCheck.responseOverride = originalBan
+            CommandStore.storageDirectoryOverride = originalCommandDirectory
+            CommandStore.resetCache()
+            try? FileManager.default.removeItem(at: directory)
+        }
+
+        let first = CommandSet(name: "One", steps: ["echo 1"])
+        let second = CommandSet(name: "Two", steps: ["echo 2"])
+        let parallel = CommandSet(
+            name: "Parallel",
+            sessions: [
+                CommandSession(name: "A", steps: ["echo 1"]),
+                CommandSession(name: "B", steps: ["echo 2"]),
+            ]
+        )
+        CommandStore.commandSets = [first, second]
+
+        XCTAssertThrowsError(try LicenseStatus.ensureCanRun(commandSet: second))
+
+        LicenseStatus.isRevokedOverride = nil
+        LicenseStatus.clear()
+
+        XCTAssertFalse(LicenseStatus.isRevoked)
+        XCTAssertFalse(LicenseStatus.isUnlocked)
+        XCTAssertNoThrow(try LicenseStatus.ensureCanAddCommandSet(existingCount: 0))
+        XCTAssertNoThrow(try LicenseStatus.ensureCanRun(commandSet: first))
+        XCTAssertThrowsError(try LicenseStatus.ensureCanRun(commandSet: second)) { error in
+            guard case LicenseStatus.RegistrationError.registrationRequired = error else {
+                XCTFail("Expected registrationRequired, got \(error)")
+                return
+            }
+        }
+
+        CommandStore.commandSets = [parallel]
+        XCTAssertThrowsError(try LicenseStatus.ensureCanRun(commandSet: parallel)) { error in
+            guard case LicenseStatus.RegistrationError.registrationRequired = error else {
+                XCTFail("Expected registrationRequired, got \(error)")
+                return
+            }
+        }
+
+        LicenseStatus.isMacAppStoreOverride = true
+        XCTAssertNoThrow(try LicenseStatus.ensureCanRun(commandSet: parallel))
+        XCTAssertNoThrow(try LicenseStatus.ensureCanAddCommandSet(existingCount: 2))
     }
 
     func testLicenseStatusBlocksUnregisteredImport() throws {

@@ -8,7 +8,8 @@ import AppKit
 import SwiftUI
 
 struct AboutView: View {
-    @State private var licenseRevision = 0
+    @State private var registeredLine = LicenseStatus.registeredLine
+    @State private var isLicenseRevoked = LicenseStatus.isRevoked
 
     var body: some View {
         VStack(spacing: 16) {
@@ -28,11 +29,21 @@ struct AboutView: View {
             }
             .buttonStyle(PlainButtonStyle())
 
-            if let registeredLine = LicenseStatus.registeredLine {
+            if isLicenseRevoked {
+                Text("This license has been revoked. Please get in touch with Manticore Software.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Button("Enter license key", action: { RegistrationWindowController.show() })
+                    .buttonStyle(PlainButtonStyle())
+                    .foregroundColor(.accentColor)
+            } else if let registeredLine {
                 Text(registeredLine)
                     .font(.caption)
                     .foregroundColor(.secondary)
-                    .id(licenseRevision)
+                    .multilineTextAlignment(.center)
             } else if AppDistribution.usesDirectLicensing {
                 Button("Enter license key", action: { RegistrationWindowController.show() })
                     .buttonStyle(PlainButtonStyle())
@@ -75,8 +86,9 @@ struct AboutView: View {
         }
         .padding(32)
         .frame(width: 380)
+        .onAppear(perform: refreshLicenseLine)
         .onReceive(NotificationCenter.default.publisher(for: .licenseDidChange)) { _ in
-            licenseRevision += 1
+            refreshLicenseLine()
         }
 
     }
@@ -104,5 +116,10 @@ struct AboutView: View {
 
     private func openURL(_ url: URL) {
         NSWorkspace.shared.open(url)
+    }
+
+    private func refreshLicenseLine() {
+        registeredLine = LicenseStatus.registeredLine
+        isLicenseRevoked = LicenseStatus.isRevoked
     }
 }

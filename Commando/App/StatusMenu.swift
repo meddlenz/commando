@@ -66,6 +66,17 @@ extension AppDelegate {
         menu.addItem(preferencesMenuItem)
         menu.addItem(NSMenuItem.separator())
 
+        if AppDistribution.usesDirectLicensing, LicenseStatus.isRevoked {
+            let revokedItem = NSMenuItem(
+                title: "License revoked",
+                action: nil,
+                keyEquivalent: ""
+            )
+            
+            revokedItem.isEnabled = false
+            menu.addItem(revokedItem)
+        }
+
         if AppDistribution.usesDirectLicensing, !LicenseStatus.isUnlocked {
             let purchaseItem = NSMenuItem(
                 title: "Purchase Commando",

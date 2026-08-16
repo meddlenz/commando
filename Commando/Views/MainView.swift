@@ -39,6 +39,7 @@ struct MainView: View {
     @State private var editableSessions: [EditableSession] = []
     @State private var isEditing = false
     @State private var validationMessage: String?
+    @State private var isLicenseRevoked = LicenseStatus.isRevoked
 
     private var parsedServerConnection: SSHConnection? {
         SSHConnection.parse(from: SSHConnection.normaliseServerDetails(serverDetails))
@@ -51,11 +52,15 @@ struct MainView: View {
             detailPanel
         }
          .frame(minWidth: 760, minHeight: 540)
+        .onAppear {
+            isLicenseRevoked = LicenseStatus.isRevoked
+        }
         .onReceive(NotificationCenter.default.publisher(for: .commandSetsDidChange)) { _ in
             commandSets = CommandStore.commandSets
         }
         .onReceive(NotificationCenter.default.publisher(for: .licenseDidChange)) { _ in
             commandSets = CommandStore.commandSets
+            isLicenseRevoked = LicenseStatus.isRevoked
         }
     }
 
@@ -130,7 +135,9 @@ struct MainView: View {
 
     private var detailPanel: some View {
         VStack(spacing: 0) {
-            if let validationMessage {
+            if isLicenseRevoked {
+                ValidationBanner(message: LicenseStatus.RegistrationError.revoked.localizedDescription)
+            } else if let validationMessage {
                 ValidationBanner(message: validationMessage)
             }
 

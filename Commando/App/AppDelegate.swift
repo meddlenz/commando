@@ -12,6 +12,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
     lazy var playMenuIcon: NSImage? = Self.makePlayMenuIcon()
+    private var didShowRevocationAlert = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         ProcessInfo.processInfo.disableAutomaticTermination("Commando menu bar item")
@@ -61,6 +62,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func licenseDidChange(_ notification: Notification) {
         constructMenu()
+        presentRevocationAlertIfNeeded()
+    }
+
+    private func presentRevocationAlertIfNeeded() {
+        guard LicenseStatus.isRevoked else {
+            didShowRevocationAlert = false
+            return
+
+        }
+
+        guard !didShowRevocationAlert else {
+            return
+        }
+
+        didShowRevocationAlert = true
+
+        let alert = NSAlert()
+        
+        alert.messageText = "License revoked"
+        alert.informativeText = LicenseStatus.RegistrationError.revoked.localizedDescription
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Ok")
+        alert.runModal()
     }
 
     private func applyDockIconPreference() {

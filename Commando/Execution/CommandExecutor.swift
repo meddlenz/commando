@@ -25,6 +25,8 @@ enum CommandExecutor {
     }
 
     static func run(_ commandSet: CommandSet) throws {
+        try LicenseStatus.ensureCanRun(commandSet: commandSet)
+
         try open(
             commands: try terminalCommands(for: commandSet),
             commandSetName: commandSet.name,
