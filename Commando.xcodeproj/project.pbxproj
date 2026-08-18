@@ -25,7 +25,6 @@
 		CR3CMD032A86F94C00B4DC63 /* CommandStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3CMD022A86F94C00B4DC63 /* CommandStore.swift */; };
 		CR3CMD052A86F94C00B4DC63 /* CommandExecutor.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3CMD042A86F94C00B4DC63 /* CommandExecutor.swift */; };
 		CR3DCK012A86F94C00B4DC63 /* DockIconSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3DCK002A86F94C00B4DC63 /* DockIconSettings.swift */; };
-		CR3DST012A86F94C00B4DC63 /* AppDistribution.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3DST002A86F94C00B4DC63 /* AppDistribution.swift */; };
 		CR3KCH012A86F94C00B4DC63 /* KeychainCredentialStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3KCH002A86F94C00B4DC63 /* KeychainCredentialStore.swift */; };
 		CR3LAL012A86F94C00B4DC63 /* LaunchAtLoginSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LAL002A86F94C00B4DC63 /* LaunchAtLoginSettings.swift */; };
 		CR3MBI012A86F94C00B4DC63 /* MenuBarIconSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3MBI002A86F94C00B4DC63 /* MenuBarIconSettings.swift */; };
@@ -97,7 +96,6 @@
 		CR3CMD022A86F94C00B4DC63 /* CommandStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandStore.swift; sourceTree = "<group>"; };
 		CR3CMD042A86F94C00B4DC63 /* CommandExecutor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommandExecutor.swift; sourceTree = "<group>"; };
 		CR3DCK002A86F94C00B4DC63 /* DockIconSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockIconSettings.swift; sourceTree = "<group>"; };
-		CR3DST002A86F94C00B4DC63 /* AppDistribution.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDistribution.swift; sourceTree = "<group>"; };
 		CR3KCH002A86F94C00B4DC63 /* KeychainCredentialStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainCredentialStore.swift; sourceTree = "<group>"; };
 		CR3LAL002A86F94C00B4DC63 /* LaunchAtLoginSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginSettings.swift; sourceTree = "<group>"; };
 		CR3MBI002A86F94C00B4DC63 /* MenuBarIconSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIconSettings.swift; sourceTree = "<group>"; };
@@ -237,7 +235,6 @@
 				CR3MOD012A86F94C00B4DC63 /* SSHConnection.swift */,
 				CR3MOD032A86F94C00B4DC63 /* SSHStepParser.swift */,
 				CR3MOD052A86F94C00B4DC63 /* AppInfo.swift */,
-				CR3DST002A86F94C00B4DC63 /* AppDistribution.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -493,7 +490,6 @@
 				CR3MOD022A86F94C00B4DC63 /* SSHConnection.swift in Sources */,
 				CR3MOD042A86F94C00B4DC63 /* SSHStepParser.swift in Sources */,
 				CR3MOD062A86F94C00B4DC63 /* AppInfo.swift in Sources */,
-				CR3DST012A86F94C00B4DC63 /* AppDistribution.swift in Sources */,
 				CR3VWS022A86F94C00B4DC63 /* SystemIcon.swift in Sources */,
 				CR3VWS042A86F94C00B4DC63 /* CommandSetSidebarRow.swift in Sources */,
 				CR3VWS062A86F94C00B4DC63 /* FormSection.swift in Sources */,

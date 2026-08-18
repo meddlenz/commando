@@ -109,17 +109,12 @@ enum UpdateChecker {
             .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    static func updateURL(
-        macOSUrl: URL?,
-        macAppStoreUrl: URL?,
-        isMacAppStore: Bool = AppDistribution.isMacAppStore
-    ) -> URL? {
-        let candidate = isMacAppStore ? macAppStoreUrl : macOSUrl
-        guard isAllowedUpdateURL(candidate) else {
+    static func updateURL(_ url: URL?) -> URL? {
+        guard isAllowedUpdateURL(url) else {
             return nil
         }
-        
-        return candidate
+
+        return url
     }
 
     static func isAllowedUpdateURL(_ url: URL?) -> Bool {
@@ -136,20 +131,14 @@ enum UpdateChecker {
     private static let allowedUpdateHosts: Set<String> = [
         "files.mac-attic.com",
         "manticore.nz",
-        "apps.apple.com",
-        "itunes.apple.com",
     ]
 
-    private static func updateURL(for updateInfo: UpdateInfo, isMacAppStore: Bool = AppDistribution.isMacAppStore) -> URL? {
-        updateURL(
-            macOSUrl: updateInfo.macOSUrl,
-            macAppStoreUrl: updateInfo.macAppStoreUrl,
-            isMacAppStore: isMacAppStore
-        )
+    private static func updateURL(for updateInfo: UpdateInfo) -> URL? {
+        updateURL(updateInfo.macOSUrl)
     }
 
-    static func updateActionTitle(isMacAppStore: Bool = AppDistribution.isMacAppStore) -> String {
-        isMacAppStore ? "View in App Store" : "Download"
+    static func updateActionTitle() -> String {
+        "Download"
     }
 
     private static func showUpdateAvailable(message: String, remoteVersion: String, updateInfo: UpdateInfo) {
@@ -291,14 +280,12 @@ private struct UpdateInfo {
     let currentMacOS: String?
     let currentMacOSChangeLog: String?
     let macOSUrl: URL?
-    let macAppStoreUrl: URL?
 }
 
 private final class UpdateInfoParser: NSObject, XMLParserDelegate {
     private var currentMacOS: String?
     private var currentMacOSChangeLog: String?
     private var macOSUrl: URL?
-    private var macAppStoreUrl: URL?
     private var currentText = ""
 
     static func parse(_ data: Data) -> UpdateInfo? {
@@ -314,8 +301,7 @@ private final class UpdateInfoParser: NSObject, XMLParserDelegate {
         return UpdateInfo(
             currentMacOS: parser.currentMacOS,
             currentMacOSChangeLog: parser.currentMacOSChangeLog,
-            macOSUrl: parser.macOSUrl,
-            macAppStoreUrl: parser.macAppStoreUrl
+            macOSUrl: parser.macOSUrl
         )
     }
 
@@ -348,8 +334,6 @@ private final class UpdateInfoParser: NSObject, XMLParserDelegate {
             currentMacOSChangeLog = trimmed
         case "macOSUrl":
             macOSUrl = URL(string: trimmed)
-        case "macAppStoreUrl":
-            macAppStoreUrl = URL(string: trimmed)
         default:
             break
         }

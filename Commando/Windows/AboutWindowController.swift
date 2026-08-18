@@ -103,10 +103,6 @@ final class AboutWindowController: NSWindowController, NSWindowDelegate {
             self.pendingCombKey = nil
             self.pendingCombAt = nil
 
-            guard AppDistribution.usesDirectLicensing else {
-                return
-            }
-
             LicenseStatus.clear()
             RegistrationWindowController.show()
             

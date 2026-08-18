@@ -44,7 +44,7 @@ struct AboutView: View {
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
-            } else if AppDistribution.usesDirectLicensing {
+            } else {
                 Button("Enter license key", action: { RegistrationWindowController.show() })
                     .buttonStyle(PlainButtonStyle())
                     .foregroundColor(.accentColor)

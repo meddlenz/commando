@@ -36,7 +36,6 @@ enum LicenseStatus {
     private static let legacyEmailKey = "licenseEmail"
     private static let legacyKeyKey = "licenseKey"
 
-    static var isMacAppStoreOverride: Bool?
     static var isRevokedOverride: Bool?
     static var storageDirectoryOverride: URL?
     private static var cachedBanned: Bool?
@@ -51,10 +50,6 @@ enum LicenseStatus {
     }
 
     static var isUnlocked: Bool {
-        if isPurchasedFromAppStore {
-            return true
-        }
-
         if isRevoked {
             return false
         }
@@ -62,16 +57,8 @@ enum LicenseStatus {
         return hasValidStoredKey
     }
 
-    static var isPurchasedFromAppStore: Bool {
-        isMacAppStoreOverride ?? AppDistribution.isMacAppStore
-    }
-
     static var isRevoked: Bool {
-        if isPurchasedFromAppStore {
-            return false
-        }
-
-        return isRevokedOverride ?? (cachedBanned == true)
+        isRevokedOverride ?? (cachedBanned == true)
     }
 
     static var registeredLine: String? {
@@ -81,10 +68,6 @@ enum LicenseStatus {
 
         if hasValidStoredKey, let name = storedName, !name.isEmpty {
             return "Registered to: \(name)"
-        }
-
-        if isPurchasedFromAppStore {
-            return "Purchased via the Mac App Store"
         }
 
         return nil
@@ -134,17 +117,6 @@ enum LicenseStatus {
     }
 
     static func refreshBanStatus() {
-        guard AppDistribution.usesDirectLicensing else {
-            cachedBanned = false
-            return
-        }
-
-        if isPurchasedFromAppStore {
-            cachedBanned = false
-
-            return
-        }
-
         guard let record = storedRecord, LicenseKey.isValid(name: record.name, email: record.email, key: record.key) else {
             cachedBanned = nil
             return
@@ -172,7 +144,7 @@ enum LicenseStatus {
     }
 
     static func ensureCanAddCommandSet(existingCount: Int) throws {
-        guard AppDistribution.usesDirectLicensing, !isUnlocked, existingCount >= 1 else {
+        guard !isUnlocked, existingCount >= 1 else {
             return
         }
 
@@ -180,7 +152,7 @@ enum LicenseStatus {
     }
 
     static func ensureCanAddSession() throws {
-        guard AppDistribution.usesDirectLicensing, !isUnlocked else {
+        guard !isUnlocked else {
             return
         }
 
@@ -188,7 +160,7 @@ enum LicenseStatus {
     }
 
     static func ensureCanSaveSessions(_ count: Int) throws {
-        guard AppDistribution.usesDirectLicensing, !isUnlocked, count > 1 else {
+        guard !isUnlocked, count > 1 else {
             return
         }
 
@@ -196,7 +168,7 @@ enum LicenseStatus {
     }
 
     static func ensureCanImport(resultingCount: Int) throws {
-        guard AppDistribution.usesDirectLicensing, !isUnlocked, resultingCount > 1 else {
+        guard !isUnlocked, resultingCount > 1 else {
             return
         }
 
@@ -204,7 +176,7 @@ enum LicenseStatus {
     }
 
     static func ensureCanRun(commandSet: CommandSet) throws {
-        guard AppDistribution.usesDirectLicensing, !isUnlocked else {
+        guard !isUnlocked else {
             return
         }
 

@@ -63,10 +63,6 @@ extension AppDelegate {
     }
 
     @objc func openRegistration() {
-        guard AppDistribution.usesDirectLicensing else {
-            return
-        }
-
         DockIconSettings.showDockForOpenWindow()
         RegistrationWindowController.show()
 
@@ -76,10 +72,6 @@ extension AppDelegate {
     }
 
     @objc func openPurchase() {
-        guard AppDistribution.usesDirectLicensing else {
-            return
-        }
-
         NSWorkspace.shared.open(AppInfo.purchaseURL)
     }
 

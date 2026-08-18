@@ -12,10 +12,6 @@ final class RegistrationWindowController: NSWindowController, NSWindowDelegate {
     private static var sharedInstance: RegistrationWindowController?
 
     static func show() {
-        guard AppDistribution.usesDirectLicensing else {
-            return
-        }
-
         DockIconSettings.showDockForOpenWindow()
 
         sharedInstance?.close()

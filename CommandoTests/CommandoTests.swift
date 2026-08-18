@@ -332,23 +332,14 @@ class CommandoTests: XCTestCase {
         XCTAssertFalse(UpdateChecker.isVersion("1.0", greaterThan: "1.0"))
     }
 
-    func testUpdateCheckerSelectsDownloadURLByDistributionChannel() {
+    func testUpdateCheckerSelectsDirectDownloadURL() {
         let directURL = URL(string: "https://files.mac-attic.com/commando.dmg")!
-        let appStoreURL = URL(string: "https://apps.apple.com/app/id123")!
         let blockedURL = URL(string: "https://evil.example/phish")!
 
-        XCTAssertEqual(
-            UpdateChecker.updateURL(macOSUrl: directURL, macAppStoreUrl: appStoreURL, isMacAppStore: false),
-            directURL
-        )
-        XCTAssertEqual(
-            UpdateChecker.updateURL(macOSUrl: directURL, macAppStoreUrl: appStoreURL, isMacAppStore: true),
-            appStoreURL
-        )
-        XCTAssertNil(UpdateChecker.updateURL(macOSUrl: blockedURL, macAppStoreUrl: appStoreURL, isMacAppStore: false))
+        XCTAssertEqual(UpdateChecker.updateURL(directURL), directURL)
+        XCTAssertNil(UpdateChecker.updateURL(blockedURL))
         XCTAssertFalse(UpdateChecker.isAllowedUpdateURL(URL(string: "file:///tmp/evil")!))
-        XCTAssertEqual(UpdateChecker.updateActionTitle(isMacAppStore: false), "Download")
-        XCTAssertEqual(UpdateChecker.updateActionTitle(isMacAppStore: true), "View in App Store")
+        XCTAssertEqual(UpdateChecker.updateActionTitle(), "Download")
     }
 
     func testCommandSetDocumentEncodesVersion() throws {
@@ -460,16 +451,22 @@ class CommandoTests: XCTestCase {
     func testCommandStoreImportMergeAndReplace() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         let originalOverride = CommandStore.storageDirectoryOverride
-        let originalStoreUnlock = LicenseStatus.isMacAppStoreOverride
+        let originalLicenseDirectory = LicenseStatus.storageDirectoryOverride
+        let originalBan = LicenseBanCheck.responseOverride
 
         CommandStore.storageDirectoryOverride = directory
         CommandStore.resetCache()
-        LicenseStatus.isMacAppStoreOverride = true
+        LicenseStatus.storageDirectoryOverride = directory
+        LicenseBanCheck.responseOverride = false
+        let name = "Pat Example"
+        let email = "pat@example.com"
+        try LicenseStatus.register(name: name, email: email, key: LicenseKey.generate(name: name, email: email))
 
         defer {
             CommandStore.storageDirectoryOverride = originalOverride
             CommandStore.resetCache()
-            LicenseStatus.isMacAppStoreOverride = originalStoreUnlock
+            LicenseStatus.storageDirectoryOverride = originalLicenseDirectory
+            LicenseBanCheck.responseOverride = originalBan
             try? FileManager.default.removeItem(at: directory)
         }
 
@@ -565,29 +562,17 @@ class CommandoTests: XCTestCase {
         XCTAssertFalse(LicenseKey.isValid(name: name, email: "other@example.com", key: key))
     }
 
-    func testLicenseStatusUnlocksForAppStoreOverride() {
-        let original = LicenseStatus.isMacAppStoreOverride
-        LicenseStatus.isMacAppStoreOverride = true
-        defer { LicenseStatus.isMacAppStoreOverride = original }
-
-        XCTAssertTrue(LicenseStatus.isUnlocked)
-        XCTAssertEqual(LicenseStatus.registeredLine, "Purchased via the Mac App Store")
-    }
-
     func testLicenseStatusRegisterPersistsValidKey() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        let originalStore = LicenseStatus.isMacAppStoreOverride
         let originalDirectory = LicenseStatus.storageDirectoryOverride
         let defaults = UserDefaults.standard
         let originalName = defaults.string(forKey: "licenseName")
         let originalEmail = defaults.string(forKey: "licenseEmail")
         let originalKey = defaults.string(forKey: "licenseKey")
         let originalBan = LicenseBanCheck.responseOverride
-        LicenseStatus.isMacAppStoreOverride = false
         LicenseStatus.storageDirectoryOverride = directory
         LicenseBanCheck.responseOverride = false
         defer {
-            LicenseStatus.isMacAppStoreOverride = originalStore
             LicenseStatus.storageDirectoryOverride = originalDirectory
             LicenseBanCheck.responseOverride = originalBan
             defaults.set(originalName, forKey: "licenseName")
@@ -635,14 +620,11 @@ class CommandoTests: XCTestCase {
 
     func testLicenseStatusClearRemovesRegistrationFile() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        let originalStore = LicenseStatus.isMacAppStoreOverride
         let originalDirectory = LicenseStatus.storageDirectoryOverride
         let originalBan = LicenseBanCheck.responseOverride
-        LicenseStatus.isMacAppStoreOverride = false
         LicenseStatus.storageDirectoryOverride = directory
         LicenseBanCheck.responseOverride = false
         defer {
-            LicenseStatus.isMacAppStoreOverride = originalStore
             LicenseStatus.storageDirectoryOverride = originalDirectory
             LicenseBanCheck.responseOverride = originalBan
             try? FileManager.default.removeItem(at: directory)
@@ -662,14 +644,11 @@ class CommandoTests: XCTestCase {
 
     func testLicenseStatusRejectsBannedKey() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        let originalStore = LicenseStatus.isMacAppStoreOverride
         let originalDirectory = LicenseStatus.storageDirectoryOverride
         let originalBan = LicenseBanCheck.responseOverride
-        LicenseStatus.isMacAppStoreOverride = false
         LicenseStatus.storageDirectoryOverride = directory
         LicenseBanCheck.responseOverride = true
         defer {
-            LicenseStatus.isMacAppStoreOverride = originalStore
             LicenseStatus.storageDirectoryOverride = originalDirectory
             LicenseBanCheck.responseOverride = originalBan
             try? FileManager.default.removeItem(at: directory)
@@ -689,19 +668,16 @@ class CommandoTests: XCTestCase {
 
     func testRevokedLicenseAppliesUnregisteredLimits() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        let originalStore = LicenseStatus.isMacAppStoreOverride
         let originalRevoked = LicenseStatus.isRevokedOverride
         let originalLicenseDirectory = LicenseStatus.storageDirectoryOverride
         let originalCommandDirectory = CommandStore.storageDirectoryOverride
 
-        LicenseStatus.isMacAppStoreOverride = false
         LicenseStatus.isRevokedOverride = true
         LicenseStatus.storageDirectoryOverride = directory
         CommandStore.storageDirectoryOverride = directory
         CommandStore.resetCache()
 
         defer {
-            LicenseStatus.isMacAppStoreOverride = originalStore
             LicenseStatus.isRevokedOverride = originalRevoked
             LicenseStatus.storageDirectoryOverride = originalLicenseDirectory
             CommandStore.storageDirectoryOverride = originalCommandDirectory
@@ -761,21 +737,18 @@ class CommandoTests: XCTestCase {
 
     func testUnregisteredLicenseCanUseFreeAllowances() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
-        let originalStore = LicenseStatus.isMacAppStoreOverride
         let originalRevoked = LicenseStatus.isRevokedOverride
         let originalLicenseDirectory = LicenseStatus.storageDirectoryOverride
         let originalBan = LicenseBanCheck.responseOverride
 
         let originalCommandDirectory = CommandStore.storageDirectoryOverride
 
-        LicenseStatus.isMacAppStoreOverride = false
         LicenseStatus.isRevokedOverride = true
         LicenseStatus.storageDirectoryOverride = directory
         LicenseBanCheck.responseOverride = true
         CommandStore.storageDirectoryOverride = directory
         CommandStore.resetCache()
         defer {
-            LicenseStatus.isMacAppStoreOverride = originalStore
             LicenseStatus.isRevokedOverride = originalRevoked
             LicenseStatus.storageDirectoryOverride = originalLicenseDirectory
             LicenseBanCheck.responseOverride = originalBan
@@ -818,26 +791,19 @@ class CommandoTests: XCTestCase {
                 return
             }
         }
-
-        LicenseStatus.isMacAppStoreOverride = true
-        XCTAssertNoThrow(try LicenseStatus.ensureCanRun(commandSet: parallel))
-        XCTAssertNoThrow(try LicenseStatus.ensureCanAddCommandSet(existingCount: 2))
     }
 
     func testLicenseStatusBlocksUnregisteredImport() throws {
-        let originalStore = LicenseStatus.isMacAppStoreOverride
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         let originalOverride = CommandStore.storageDirectoryOverride
         let originalLicenseDirectory = LicenseStatus.storageDirectoryOverride
 
-        LicenseStatus.isMacAppStoreOverride = false
         LicenseStatus.storageDirectoryOverride = directory
         CommandStore.storageDirectoryOverride = directory
         CommandStore.resetCache()
         CommandStore.commandSets = [CommandSet(name: "One", steps: ["echo 1"])]
 
         defer {
-            LicenseStatus.isMacAppStoreOverride = originalStore
             LicenseStatus.storageDirectoryOverride = originalLicenseDirectory
             CommandStore.storageDirectoryOverride = originalOverride
             CommandStore.resetCache()
