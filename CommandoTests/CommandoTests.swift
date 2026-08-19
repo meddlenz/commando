@@ -334,9 +334,11 @@ class CommandoTests: XCTestCase {
 
     func testUpdateCheckerSelectsDirectDownloadURL() {
         let directURL = URL(string: "https://files.mac-attic.com/commando.dmg")!
+        let httpURL = URL(string: "http://files.mac-attic.com/commando.dmg")!
         let blockedURL = URL(string: "https://evil.example/phish")!
 
         XCTAssertEqual(UpdateChecker.updateURL(directURL), directURL)
+        XCTAssertEqual(UpdateChecker.updateURL(httpURL)?.scheme?.lowercased(), "https")
         XCTAssertNil(UpdateChecker.updateURL(blockedURL))
         XCTAssertFalse(UpdateChecker.isAllowedUpdateURL(URL(string: "file:///tmp/evil")!))
         XCTAssertEqual(UpdateChecker.updateActionTitle(), "Download")

@@ -11,21 +11,23 @@ enum LicenseSecrets {
         String(bytes: unfolded, encoding: .utf8) ?? ""
     }
 
-    private static var unfolded: [UInt8] {
+        private static var unfolded: [UInt8] {
         let a: [UInt8] = [0x5A, 0x3C, 0x91, 0xE7, 0x2B, 0x44, 0xD8, 0x0F]
         let b: [UInt8] = [0x66, 0xA1, 0x7C, 0x19, 0xB3, 0x58, 0xC2, 0x04]
         let mask = a + b
 
         let left: [UInt8] = [
-            23, 83, 227, 147, 66, 41, 189, 125, 70, 230, 19, 109, 219, 82, 128, 107,
-            56, 28, 223,
+            0x0A, 0x5D, 0xE5, 0x94, 0x52, 0x64, 0x9E, 0x66,
+            0x15, 0xC9, 0x19, 0x6B, 0xB9, 0x1A, 0xAD, 0x66,
+            0x7A, 0x72,
         ]
 
         let right: [UInt8] = [
-            130, 92, 38, 177, 106, 108, 229, 21, 120, 221, 61, 226, 84, 54, 89, 240,
-            148, 74, 42, 172,
+            0xF4, 0x90, 0x49, 0x2D, 0xBD, 0x05, 0x2C, 0xC4,
+            0x1A, 0x7F, 0x93, 0x08, 0xAE, 0x61, 0x3B, 0x4F,
+            0xF0, 0x89, 0x5F,
         ]
-        
+
         let packed = left + right
 
         return packed.enumerated().map { index, byte in

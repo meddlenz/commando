@@ -12,6 +12,7 @@ enum AppInfo {
     static let licenseCheckURL = URL(string: "https://proxy.manticore.nz/legacyai/commando/license")!
     static let privacyURL = URL(string: "https://manticore.nz/commando/privacy")!
     static let termsURL = URL(string: "https://manticore.nz/commando/terms")!
+    static let newsURL = URL(string: "https://manticore.nz/news")!
 
     static var name: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "Commando"
