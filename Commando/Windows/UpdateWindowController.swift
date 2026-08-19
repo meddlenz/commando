@@ -46,7 +46,7 @@ final class UpdateWindowController: NSWindowController, NSWindowDelegate {
         self.onLater = onLater
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 420, height: 260),
+            contentRect: NSRect(x: 0, y: 0, width: 440, height: 300),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
