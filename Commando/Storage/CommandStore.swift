@@ -105,6 +105,7 @@ enum CommandStore {
             return
         
         }
+
         didStart = true
 
         _ = commandSets
@@ -304,6 +305,9 @@ enum CommandStore {
             return nil
         
         }
+
+
+        
         guard let container = FileManager.default.url(
             forUbiquityContainerIdentifier: AppStoragePaths.iCloudContainerIdentifier
         ) else {

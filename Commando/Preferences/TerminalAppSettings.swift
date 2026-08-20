@@ -114,7 +114,7 @@ enum TerminalAppSettings {
     @discardableResult
     static func promptForApplication() -> String? {
         let panel = NSOpenPanel()
-        panel.title = "Choose Terminal Application"
+        panel.title = "Choose a Terminal Application"
         panel.message = "Select the terminal app Commando should use to run commands."
         panel.allowedFileTypes = ["app"]
         panel.allowsMultipleSelection = false

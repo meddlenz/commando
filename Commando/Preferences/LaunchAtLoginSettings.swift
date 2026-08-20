@@ -4,20 +4,19 @@
 //  Jordan Trbuhovic 2026
 //
 
-import CoreServices
 import Foundation
 import ServiceManagement
 
 enum LaunchAtLoginSettings {
-
     private static let enabledKey = "launchAtLogin"
+    private static let loginItemIdentifier = "com.manticoresw.commando.loginitem"
 
     static var isEnabled: Bool {
         if #available(macOS 13.0, *) {
             return SMAppService.mainApp.status == .enabled
         }
 
-        return isRegisteredLegacy()
+        return isLoginItemRegistered()
     }
 
     static func setEnabled(_ enabled: Bool) throws {
@@ -27,80 +26,47 @@ enum LaunchAtLoginSettings {
             } else {
                 try SMAppService.mainApp.unregister()
             }
-
         } else {
-            try setEnabledLegacy(enabled)
+            try setLoginItemEnabled(enabled)
         }
 
         UserDefaults.standard.set(enabled, forKey: enabledKey)
         NotificationCenter.default.post(name: .preferencesDidChange, object: nil)
     }
 
-    @available(macOS, deprecated: 13.0)
-    private static func isRegisteredLegacy() -> Bool {
-        guard let loginItems = LSSharedFileListCreate(nil, kLSSharedFileListSessionLoginItems.takeUnretainedValue(), nil)?.takeRetainedValue(),
-              let appURL = Bundle.main.bundleURL as CFURL? else {
+    private static func isLoginItemRegistered() -> Bool {
+        guard let jobs = LaunchAtLoginJobLookup.jobs else {
             return UserDefaults.standard.bool(forKey: enabledKey)
         }
 
-        let items = LSSharedFileListCopySnapshot(loginItems, nil)?.takeRetainedValue() as? [LSSharedFileListItem] ?? []
-       
-        for item in items {
-            if let itemURL = LSSharedFileListItemCopyResolvedURL(item, 0, nil)?.takeRetainedValue() as URL?,
-               itemURL == appURL as URL {
-                return true
-            }
+        guard let job = jobs.first(where: { ($0["Label"] as? String) == loginItemIdentifier }) else {
+            return false
         }
-        
-        return false
+
+        return (job["OnDemand"] as? Bool) == false
     }
 
-    @available(macOS, deprecated: 13.0)
-    private static func setEnabledLegacy(_ enabled: Bool) throws {
-        guard let loginItems = LSSharedFileListCreate(nil, kLSSharedFileListSessionLoginItems.takeUnretainedValue(), nil)?.takeRetainedValue(),
-              let appURL = Bundle.main.bundleURL as CFURL? else {
-            throw LaunchAtLoginError.unavailable
-        }
-
-        if enabled {
-            let item = LSSharedFileListInsertItemURL(
-                loginItems,
-                kLSSharedFileListItemBeforeFirst.takeUnretainedValue(),
-                nil,
-                nil,
-                appURL,
-                nil,
-
-                nil
-            )
-
-            if item == nil {
-                throw LaunchAtLoginError.registrationFailed
-            }
-        } else {
-            let items = LSSharedFileListCopySnapshot(loginItems, nil)?.takeRetainedValue() as? [LSSharedFileListItem] ?? []
-            
-            for item in items {
-                if let itemURL = LSSharedFileListItemCopyResolvedURL(item, 0, nil)?.takeRetainedValue() as URL?,
-                   itemURL == appURL as URL {
-                    LSSharedFileListItemRemove(loginItems, item)
-                }
-            }
+    private static func setLoginItemEnabled(_ enabled: Bool) throws {
+        guard SMLoginItemSetEnabled(loginItemIdentifier as CFString, enabled) else {
+            throw LaunchAtLoginError.registrationFailed
         }
     }
 
     enum LaunchAtLoginError: LocalizedError {
-        case unavailable
         case registrationFailed
 
         var errorDescription: String? {
             switch self {
-            case .unavailable:
-                return "Launch at login is not available on this Mac."
             case .registrationFailed:
                 return "Could not add Commando to login items."
             }
         }
+    }
+}
+
+private enum LaunchAtLoginJobLookup {
+    static var jobs: [[String: AnyObject]]? {
+        SMCopyAllJobDictionaries(kSMDomainUserLaunchd)?.takeRetainedValue() as? [[String: AnyObject]]
     }
 }
 

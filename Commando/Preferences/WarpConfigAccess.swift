@@ -100,7 +100,7 @@ enum WarpConfigAccess {
         explanation.informativeText = """
         Warp reads custom tab configurations from \(displayPath)/tab_configs. Commando needs one-time permission to write its commando.toml file there.
 
-        The next dialog will automatically try to find \(displayPath) so you can select it. Select the \(directoryName) folder itself, not your home folder.
+        The next dialog will automatically try to find \(displayPath) so you can select it. Select the \(directoryName) folder itself.
         """
         explanation.addButton(withTitle: "Choose \(directoryName) Folder")
         explanation.addButton(withTitle: "Cancel")

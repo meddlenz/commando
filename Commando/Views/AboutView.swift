@@ -22,15 +22,8 @@ struct AboutView: View {
             Text("Version \(AppInfo.version)")
                 .foregroundColor(.secondary)
 
-            Button(action: openCompanyWebsite) {
-                Text("Manticore Software")
-                    .font(.system(size: 12))
-                    .foregroundColor(.accentColor)
-            }
-            .buttonStyle(PlainButtonStyle())
-
             if isLicenseRevoked {
-                Text("This license has been revoked. Please get in touch with Manticore Software.")
+                Text("This license has been revoked. Please get in touch with Manticore SW for more information.")
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -50,20 +43,18 @@ struct AboutView: View {
                     .foregroundColor(.accentColor)
             }
 
-
-
-            Text("Run saved terminal commands from your menu bar.")
-                .font(.body)
-                .multilineTextAlignment(.center)
-                .foregroundColor(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 8)
-
             if !AppInfo.copyright.isEmpty {
                 Text(AppInfo.copyright)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
+
+            Button(action: openCompanyWebsite) {
+                Text("Manticore Software")
+                    .font(.system(size: 12))
+                    .foregroundColor(.accentColor)
+            }
+            .buttonStyle(PlainButtonStyle())
 
 
             HStack(spacing: 12) {

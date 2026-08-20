@@ -25,6 +25,8 @@ enum SSHKeySetupPrompt {
         alert.addButton(withTitle: "Cancel")
 
         NSApp.activate(ignoringOtherApps: true)
+
+        
         return alert.runModal() == .alertFirstButtonReturn
     }
 

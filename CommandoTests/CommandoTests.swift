@@ -695,7 +695,7 @@ class CommandoTests: XCTestCase {
         XCTAssertFalse(LicenseStatus.isUnlocked)
         XCTAssertEqual(
             LicenseStatus.RegistrationError.revoked.localizedDescription,
-            "This license has been revoked. Please get in touch with Manticore Software."
+            "This license has been revoked. Please get in touch with Manticore SW for more information."
         )
 
         XCTAssertThrowsError(try LicenseStatus.ensureCanAddCommandSet(existingCount: 2)) { error in
@@ -824,5 +824,21 @@ class CommandoTests: XCTestCase {
                 return
             }
         }
+    }
+
+    func testLoginItemResolvesMainAppBundleURL() {
+        let helperURL = URL(fileURLWithPath: "/Applications/Commando.app/Contents/Library/LoginItems/CommandoLoginItem.app")
+        let mainAppURL = MainAppLocator.containingAppBundleURL(from: helperURL)
+
+        XCTAssertEqual(mainAppURL?.lastPathComponent, "Commando.app")
+        XCTAssertEqual(mainAppURL?.path, "/Applications/Commando.app")
+    }
+
+    func testLoginItemResolvesMainAppWithExtraIntermediateDirectories() {
+        let helperURL = URL(fileURLWithPath: "/Users/dev/Commando.app/Contents/Library/LoginItems/Nested/CommandoLoginItem.app")
+        let mainAppURL = MainAppLocator.containingAppBundleURL(from: helperURL)
+
+        XCTAssertEqual(mainAppURL?.lastPathComponent, "Commando.app")
+        XCTAssertEqual(mainAppURL?.path, "/Users/dev/Commando.app")
     }
 }

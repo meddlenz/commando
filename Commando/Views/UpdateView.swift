@@ -49,7 +49,7 @@ struct UpdateView: View {
                 .frame(width: 48, height: 48)
 
             VStack(alignment: .leading, spacing: 4) {
-                Text("A new version is available")
+                Text("Commando Update")
                     .font(.system(size: 15, weight: .semibold))
 
                 Text("Version \(version)")
@@ -132,11 +132,13 @@ private struct DefaultActionButton: NSViewRepresentable {
 
     func makeNSView(context: Context) -> NSButton {
         let button = NSButton(title: title, target: context.coordinator, action: #selector(Coordinator.tapped))
+        
         button.bezelStyle = .rounded
         button.keyEquivalent = "\r"
         button.setContentHuggingPriority(.required, for: .horizontal)
         button.setContentCompressionResistancePriority(.required, for: .horizontal)
         button.sizeToFit()
+        
         return button
     }
 

@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 50;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -27,6 +27,10 @@
 		CR3DCK012A86F94C00B4DC63 /* DockIconSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3DCK002A86F94C00B4DC63 /* DockIconSettings.swift */; };
 		CR3KCH012A86F94C00B4DC63 /* KeychainCredentialStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3KCH002A86F94C00B4DC63 /* KeychainCredentialStore.swift */; };
 		CR3LAL012A86F94C00B4DC63 /* LaunchAtLoginSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LAL002A86F94C00B4DC63 /* LaunchAtLoginSettings.swift */; };
+		CR3LAL142A86F94C00B4DC63 /* LoginItemAppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LAL102A86F94C00B4DC63 /* LoginItemAppDelegate.swift */; };
+		CR3LAL242A86F94C00B4DC63 /* MainAppLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LAL232A86F94C00B4DC63 /* MainAppLocator.swift */; };
+		CR3LAL252A86F94C00B4DC63 /* MainAppLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LAL232A86F94C00B4DC63 /* MainAppLocator.swift */; };
+		CR3LAL152A86F94C00B4DC63 /* CommandoLoginItem.app in CopyFiles */ = {isa = PBXBuildFile; fileRef = CR3LAL132A86F94C00B4DC63 /* CommandoLoginItem.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		CR3LIC012A86F94C00B4DC63 /* LicenseSecrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LIC002A86F94C00B4DC63 /* LicenseSecrets.swift */; };
 		CR3LIC013A86F94C00B4DC63 /* LicenseKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LIC003A86F94C00B4DC63 /* LicenseKey.swift */; };
 		CR3LIC014A86F94C00B4DC63 /* LicenseStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LIC004A86F94C00B4DC63 /* LicenseStatus.swift */; };
@@ -70,7 +74,27 @@
 			remoteGlobalIDString = 171A9C572A86F94C00B4DC63;
 			remoteInfo = Commando;
 		};
+		CR3LAL1C2A86F94C00B4DC63 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 171A9C502A86F94C00B4DC63 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CR3LAL162A86F94C00B4DC63;
+			remoteInfo = "Commando Login Item";
+		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		CR3LAL1A2A86F94C00B4DC63 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Library/LoginItems;
+			dstSubfolderSpec = 1;
+			files = (
+				CR3LAL152A86F94C00B4DC63 /* CommandoLoginItem.app in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		171A9C582A86F94C00B4DC63 /* Commando.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Commando.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -100,6 +124,11 @@
 		CR3DCK002A86F94C00B4DC63 /* DockIconSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DockIconSettings.swift; sourceTree = "<group>"; };
 		CR3KCH002A86F94C00B4DC63 /* KeychainCredentialStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainCredentialStore.swift; sourceTree = "<group>"; };
 		CR3LAL002A86F94C00B4DC63 /* LaunchAtLoginSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchAtLoginSettings.swift; sourceTree = "<group>"; };
+		CR3LAL102A86F94C00B4DC63 /* LoginItemAppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginItemAppDelegate.swift; sourceTree = "<group>"; };
+		CR3LAL232A86F94C00B4DC63 /* MainAppLocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainAppLocator.swift; sourceTree = "<group>"; };
+		CR3LAL112A86F94C00B4DC63 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CR3LAL122A86F94C00B4DC63 /* CommandoLoginItem.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CommandoLoginItem.entitlements; sourceTree = "<group>"; };
+		CR3LAL132A86F94C00B4DC63 /* CommandoLoginItem.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CommandoLoginItem.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		CR3LIC002A86F94C00B4DC63 /* LicenseSecrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseSecrets.swift; sourceTree = "<group>"; };
 		CR3LIC003A86F94C00B4DC63 /* LicenseKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseKey.swift; sourceTree = "<group>"; };
 		CR3LIC004A86F94C00B4DC63 /* LicenseStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseStatus.swift; sourceTree = "<group>"; };
@@ -150,6 +179,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CR3LAL182A86F94C00B4DC63 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -157,6 +193,7 @@
 			isa = PBXGroup;
 			children = (
 				171A9C5A2A86F94C00B4DC63 /* Commando */,
+				CR3LAL202A86F94C00B4DC63 /* CommandoLoginItem */,
 				171A9C702A86F94D00B4DC63 /* CommandoTests */,
 				171A9C7B2A86F94D00B4DC63 /* CommandoUITests */,
 				171A9C592A86F94C00B4DC63 /* Products */,
@@ -167,6 +204,7 @@
 			isa = PBXGroup;
 			children = (
 				171A9C582A86F94C00B4DC63 /* Commando.app */,
+				CR3LAL132A86F94C00B4DC63 /* CommandoLoginItem.app */,
 				171A9C6D2A86F94D00B4DC63 /* CommandoTests.xctest */,
 				171A9C782A86F94D00B4DC63 /* CommandoUITests.xctest */,
 			);
@@ -332,6 +370,17 @@
 			path = Licensing;
 			sourceTree = "<group>";
 		};
+		CR3LAL202A86F94C00B4DC63 /* CommandoLoginItem */ = {
+			isa = PBXGroup;
+			children = (
+				CR3LAL102A86F94C00B4DC63 /* LoginItemAppDelegate.swift */,
+				CR3LAL232A86F94C00B4DC63 /* MainAppLocator.swift */,
+				CR3LAL112A86F94C00B4DC63 /* Info.plist */,
+				CR3LAL122A86F94C00B4DC63 /* CommandoLoginItem.entitlements */,
+			);
+			path = CommandoLoginItem;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -342,10 +391,12 @@
 				171A9C542A86F94C00B4DC63 /* Sources */,
 				171A9C552A86F94C00B4DC63 /* Frameworks */,
 				171A9C562A86F94C00B4DC63 /* Resources */,
+				CR3LAL1A2A86F94C00B4DC63 /* CopyFiles */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				CR3LAL1B2A86F94C00B4DC63 /* PBXTargetDependency */,
 			);
 			name = Commando;
 			productName = Commando;
@@ -388,14 +439,31 @@
 			productReference = 171A9C782A86F94D00B4DC63 /* CommandoUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
+		CR3LAL162A86F94C00B4DC63 /* Commando Login Item */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CR3LAL1F2A86F94C00B4DC63 /* Build configuration list for PBXNativeTarget "Commando Login Item" */;
+			buildPhases = (
+				CR3LAL172A86F94C00B4DC63 /* Sources */,
+				CR3LAL182A86F94C00B4DC63 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "Commando Login Item";
+			productName = CommandoLoginItem;
+			productReference = CR3LAL132A86F94C00B4DC63 /* CommandoLoginItem.app */;
+			productType = "com.apple.product-type.application";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		171A9C502A86F94C00B4DC63 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1140;
-				LastUpgradeCheck = 1140;
+				LastUpgradeCheck = 2660;
 				ORGANIZATIONNAME = "Jordan Trbuhovic";
 				TargetAttributes = {
 					171A9C572A86F94C00B4DC63 = {
@@ -408,6 +476,9 @@
 					171A9C772A86F94D00B4DC63 = {
 						CreatedOnToolsVersion = 11.4.1;
 						TestTargetID = 171A9C572A86F94C00B4DC63;
+					};
+					CR3LAL162A86F94C00B4DC63 = {
+						CreatedOnToolsVersion = 11.4.1;
 					};
 				};
 			};
@@ -425,6 +496,7 @@
 			projectRoot = "";
 			targets = (
 				171A9C572A86F94C00B4DC63 /* Commando */,
+				CR3LAL162A86F94C00B4DC63 /* Commando Login Item */,
 				171A9C6C2A86F94D00B4DC63 /* CommandoTests */,
 				171A9C772A86F94D00B4DC63 /* CommandoUITests */,
 			);
@@ -512,6 +584,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				171A9C722A86F94D00B4DC63 /* CommandoTests.swift in Sources */,
+				CR3LAL252A86F94C00B4DC63 /* MainAppLocator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -520,6 +593,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				171A9C7D2A86F94D00B4DC63 /* CommandoUITests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CR3LAL172A86F94C00B4DC63 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CR3LAL142A86F94C00B4DC63 /* LoginItemAppDelegate.swift in Sources */,
+				CR3LAL242A86F94C00B4DC63 /* MainAppLocator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -535,6 +617,11 @@
 			isa = PBXTargetDependency;
 			target = 171A9C572A86F94C00B4DC63 /* Commando */;
 			targetProxy = 171A9C792A86F94D00B4DC63 /* PBXContainerItemProxy */;
+		};
+		CR3LAL1B2A86F94C00B4DC63 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CR3LAL162A86F94C00B4DC63 /* Commando Login Item */;
+			targetProxy = CR3LAL1C2A86F94C00B4DC63 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -576,6 +663,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -583,9 +671,12 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 5D3622Q6DB;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -605,6 +696,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -636,6 +728,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -643,9 +736,12 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 5D3622Q6DB;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -658,6 +754,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 			};
@@ -672,8 +769,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Commando/Preview Content\"";
-				DEVELOPMENT_TEAM = 5D3622Q6DB;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
@@ -695,7 +792,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.manticoresw.commando;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -712,8 +809,8 @@
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"Commando/Preview Content\"";
-				DEVELOPMENT_TEAM = 5D3622Q6DB;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_INCOMING_NETWORK_CONNECTIONS = NO;
@@ -735,7 +832,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.manticoresw.commando;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -746,18 +843,17 @@
 		171A9C852A86F94D00B4DC63 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 5D3622Q6DB;
+				DEAD_CODE_STRIPPING = YES;
 				INFOPLIST_FILE = CommandoTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = manticoresw.CommandoTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -768,18 +864,17 @@
 		171A9C862A86F94D00B4DC63 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 5D3622Q6DB;
+				DEAD_CODE_STRIPPING = YES;
 				INFOPLIST_FILE = CommandoTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = manticoresw.CommandoTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -790,16 +885,16 @@
 		171A9C882A86F94D00B4DC63 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 5D3622Q6DB;
+				DEAD_CODE_STRIPPING = YES;
 				INFOPLIST_FILE = CommandoUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = manticoresw.CommandoUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
@@ -810,20 +905,70 @@
 		171A9C892A86F94D00B4DC63 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = 5D3622Q6DB;
+				DEAD_CODE_STRIPPING = YES;
 				INFOPLIST_FILE = CommandoUITests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				PRODUCT_BUNDLE_IDENTIFIER = manticoresw.CommandoUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TEST_TARGET_NAME = Commando;
+			};
+			name = Release;
+		};
+		CR3LAL1D2A86F94C00B4DC63 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = CommandoLoginItem/CommandoLoginItem.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CommandoLoginItem/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.manticoresw.commando.loginitem;
+				PRODUCT_NAME = CommandoLoginItem;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		CR3LAL1E2A86F94C00B4DC63 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = CommandoLoginItem/CommandoLoginItem.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
+				ENABLE_APP_SANDBOX = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = CommandoLoginItem/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.manticoresw.commando.loginitem;
+				PRODUCT_NAME = CommandoLoginItem;
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -862,6 +1007,15 @@
 			buildConfigurations = (
 				171A9C882A86F94D00B4DC63 /* Debug */,
 				171A9C892A86F94D00B4DC63 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CR3LAL1F2A86F94C00B4DC63 /* Build configuration list for PBXNativeTarget "Commando Login Item" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CR3LAL1D2A86F94C00B4DC63 /* Debug */,
+				CR3LAL1E2A86F94C00B4DC63 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

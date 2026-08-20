@@ -58,6 +58,7 @@ struct MainView: View {
         .onReceive(NotificationCenter.default.publisher(for: .commandSetsDidChange)) { _ in
             commandSets = CommandStore.commandSets
         }
+
         .onReceive(NotificationCenter.default.publisher(for: .licenseDidChange)) { _ in
             commandSets = CommandStore.commandSets
             isLicenseRevoked = LicenseStatus.isRevoked
@@ -167,7 +168,7 @@ struct MainView: View {
             Text("Select a command set")
                 .font(.system(size: 20, weight: .medium))
 
-            Text("Choose one from the list, or create a new command set to run from the menu bar.")
+            Text("Choose one from the list, or create a new command set.")
                 .multilineTextAlignment(.center)
                 .foregroundColor(.secondary)
                 .frame(maxWidth: 320)
@@ -208,7 +209,7 @@ struct MainView: View {
 
                 FormSection(
                     title: "Commands",
-                    help: "Steps in a session run in order. Parallel sessions split the window or open additional windows if splitting isn't available."
+                    help: "Steps in a session run in order. Parallel sessions split the terminal window or open additional windows if splitting isn't available."
                 ) {
                     VStack(alignment: .leading, spacing: 8) {
                         ForEach(Array(editableSessions.enumerated()), id: \.element.id) { sessionIndex, session in

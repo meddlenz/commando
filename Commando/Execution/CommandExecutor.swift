@@ -77,6 +77,7 @@ enum CommandExecutor {
                SSHStepParser.remoteCommand(from: step) == nil {
                 return nil
             }
+            
             return step
         }
     }

@@ -21,13 +21,13 @@ enum LicenseStatus {
         var errorDescription: String? {
             switch self {
             case .missingFields:
-                return "Enter your full name, email, and registration key."
+                return "Enter your full name, email, and license key."
             case .invalidKey:
-                return "That registration key does not match this name and email."
+                return "That license key does not match this name and email."
             case .registrationRequired:
-                return "Please purchase Commando to unlock it's full capabilities."
+                return "Please purchase Commando to unlock its full capabilities."
             case .revoked:
-                return "This license has been revoked. Please get in touch with Manticore Software."
+                return "This license has been revoked. Please get in touch with Manticore SW for more information."
             }
         }
     }
