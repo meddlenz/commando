@@ -12,7 +12,7 @@ Commando/Licensing/
   LicenseGuard.swift         Code-sign + unlock/sentinel integrity checks
   LicenseRemoteCheck.swift   Ban check + tamper report HTTP client
   LicenseEndpoints.swift     Obfuscated server URLs
-  RegistrationKeychain.swift Device-local AES key for registration.dat
+  RegistrationKeychain.swift Device-local AES key file for registration.dat
   AppLock.swift              Force-update lock from commando.xml
 ```
 
@@ -135,7 +135,7 @@ Instead, `LicenseGuard` runs **runtime consistency checks** — essentially: _do
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
 | **Code signature**    | Binary modified or re-signed outside your Developer ID pipeline (`SecStaticCodeCheckValidity` on the app bundle)                                  | `codesign_invalid`  |
 | **Unlock mismatch**   | `isUnlocked` patched to `true` without a cryptographically valid stored key (recomputes unlock from `LicenseKey.isValid` vs public `isUnlocked`)  | `unlock_mismatch`   |
-| **Sentinel mismatch** | Unlock flags flipped but Keychain sentinel not updated (`SHA256("commando.sentinel.v1" + "unlocked"\|"locked")` written on license state changes) | `sentinel_mismatch` |
+| **Sentinel mismatch** | Unlock flags flipped but on-disk sentinel not updated (`SHA256("commando.sentinel.v1" + "unlocked"\|"locked")` written on license state changes) | `sentinel_mismatch` |
 
 **When checks run**
 
@@ -164,7 +164,7 @@ Encrypted file (not the license key itself):
 ~/Library/Containers/com.manticoresw.commando/Data/Library/Application Support/Commando/registration.dat
 ```
 
-Encryption uses a **device-local Keychain key** (`RegistrationKeychain`). The file is not portable to another Mac; users re-enter name, email, and key on a new machine.
+Encryption uses a **device-local key file** (`registration-device.key` in Application Support). The encrypted `registration.dat` is not portable to another Mac; users re-enter name, email, and key on a new machine.
 
 ## Testing
 

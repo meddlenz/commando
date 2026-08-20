@@ -27,8 +27,7 @@ enum LicenseGuard {
     static var integrityIssueOverride: IntegrityIssue?
     static var skipIntegrityChecks = false
 
-    private static let sentinelService = "com.manticoresw.commando.license"
-    private static let sentinelAccount = "sentinel"
+    private static let sentinelFileName = "license-sentinel.dat"
 
     static func permits(_ feature: Feature) -> Bool {
         if AppLock.isLocked {
@@ -79,24 +78,16 @@ enum LicenseGuard {
 
     static func refreshSentinel(forUnlocked unlocked: Bool) {
         let token = sentinelToken(unlocked: unlocked)
+        let url = sentinelFileURL
 
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: sentinelService,
-            kSecAttrAccount as String: sentinelAccount,
-        ]
-
-        SecItemDelete(query as CFDictionary)
-
-        let add: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: sentinelService,
-            kSecAttrAccount as String: sentinelAccount,
-            kSecValueData as String: token,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly,
-        ]
-
-        SecItemAdd(add as CFDictionary, nil)
+        do {
+            try AppStoragePaths.ensureDirectory(at: url.deletingLastPathComponent())
+            try token.write(to: url, options: .atomic)
+        } catch {
+            if !unlocked {
+                try? FileManager.default.removeItem(at: url)
+            }
+        }
     }
 
     static func verifyCodesignIntegrity() -> Bool {
@@ -136,24 +127,10 @@ enum LicenseGuard {
 
     private static func sentinelMatchesUnlockState(_ unlocked: Bool) -> Bool {
         let expected = sentinelToken(unlocked: unlocked)
+        let url = sentinelFileURL
 
-        var query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: sentinelService,
-            kSecAttrAccount as String: sentinelAccount,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne,
-        ]
-
-        var item: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &item)
-
-        if status == errSecItemNotFound {
+        guard let data = try? Data(contentsOf: url) else {
             return !unlocked
-        }
-
-        guard status == errSecSuccess, let data = item as? Data else {
-            return false
         }
 
         return data == expected
@@ -162,8 +139,10 @@ enum LicenseGuard {
     private static func sentinelToken(unlocked: Bool) -> Data {
         let marker = unlocked ? "unlocked" : "locked"
         let material = Data("commando.sentinel.v1".utf8) + Data(marker.utf8)
-
-        
         return Data(SHA256.hash(data: material))
+    }
+
+    private static var sentinelFileURL: URL {
+        AppStoragePaths.applicationSupportDirectory.appendingPathComponent(sentinelFileName)
     }
 }
