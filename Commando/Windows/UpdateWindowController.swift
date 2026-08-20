@@ -14,15 +14,20 @@ final class UpdateWindowController: NSWindowController, NSWindowDelegate {
         version: String,
         message: String,
         updateURL: URL?,
+        required: Bool = false,
         onLater: @escaping () -> Void
     ) {
         DockIconSettings.showDockForOpenWindow()
 
-        sharedInstance?.close()
+        if !required {
+            sharedInstance?.close()
+        }
+
         sharedInstance = UpdateWindowController(
             version: version,
             message: message,
             updateURL: updateURL,
+            required: required,
             onLater: onLater
         )
         sharedInstance?.showWindow(nil)
@@ -35,24 +40,28 @@ final class UpdateWindowController: NSWindowController, NSWindowDelegate {
 
     private let updateURL: URL?
     private let onLater: () -> Void
+    private let required: Bool
 
     private init(
         version: String,
         message: String,
         updateURL: URL?,
+        required: Bool,
         onLater: @escaping () -> Void
     ) {
         self.updateURL = updateURL
         self.onLater = onLater
+        self.required = required
 
+        let styleMask: NSWindow.StyleMask = required ? [.titled] : [.titled, .closable]
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 440, height: 300),
-            styleMask: [.titled, .closable],
+            styleMask: styleMask,
             backing: .buffered,
             defer: false
         )
 
-        window.title = "Update Available"
+        window.title = required ? "Update Required" : "Update Available"
         window.center()
         window.isReleasedWhenClosed = false
         window.collectionBehavior = [.moveToActiveSpace]
@@ -60,12 +69,13 @@ final class UpdateWindowController: NSWindowController, NSWindowDelegate {
         super.init(window: window)
 
         window.delegate = self
-        centerTitle("Update Available", in: window)
+        centerTitle(required ? "Update Required" : "Update Available", in: window)
         window.contentViewController = NSHostingController(
             rootView: UpdateView(
                 version: version,
                 message: message,
                 downloadEnabled: updateURL != nil,
+                showsLaterButton: !required,
                 onDownload: { [weak self] in
                     self?.downloadUpdate()
                 },
@@ -81,6 +91,10 @@ final class UpdateWindowController: NSWindowController, NSWindowDelegate {
     }
 
     func windowWillClose(_ notification: Notification) {
+        if required {
+            return
+        }
+
         if UpdateWindowController.sharedInstance === self {
             UpdateWindowController.sharedInstance = nil
         }

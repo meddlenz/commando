@@ -11,32 +11,101 @@ import CryptoKit
 import Foundation
 
 enum LicenseKey {
-    private static let alphabet = Array("0123456789ABCDEFGHJKMNPQRSTVWXYZ")
+    private static let prefix = "COMMANDO1"
+    private static let version = 1
 
-    static func generate(name: String, email: String) -> String {
-        format(encode(hmacBytes(name: name, email: email)))
+    static var publicKeyOverride: Data?
+
+    struct ParsedLicense {
+        var payload: Payload
+        var payloadBytes: Data
+        var signature: Data
+        var wire: String
+    }
+
+    struct Payload: Equatable {
+        var version: Int
+        var name: String
+        var email: String
+        var issued: Int
+        var id: String
     }
 
     static func isValid(name: String, email: String, key: String) -> Bool {
-        let expected = normalized(generate(name: name, email: email))
-        let actual = normalized(key)
-
-        guard expected.count == actual.count, !expected.isEmpty else {
+        guard let parsed = parse(key) else {
             return false
         }
 
-        return constantTimeEquals(expected, actual)
+        let trimmedName = canonicalName(name)
+        let trimmedEmail = canonicalEmail(email)
+
+        guard parsed.payload.version == version,
+              parsed.payload.name == trimmedName,
+              parsed.payload.email == trimmedEmail,
+              !parsed.payload.id.isEmpty else {
+            return false
+        }
+
+        return verifySignature(payloadBytes: parsed.payloadBytes, signature: parsed.signature)
     }
 
     static func banToken(from key: String) -> String {
+        if let parsed = parse(key) {
+            return parsed.payload.id
+        }
+
         let normalizedKey = normalized(key)
-
         guard normalizedKey.count >= 12 else {
-
             return normalizedKey
         }
 
         return String(normalizedKey.suffix(12))
+    }
+
+    static func licenseID(from key: String) -> String? {
+        parse(key)?.payload.id
+    }
+
+    static func parse(_ key: String) -> ParsedLicense? {
+        let trimmed = key.trimmingCharacters(in: .whitespacesAndNewlines)
+        let parts = trimmed.split(separator: ".", omittingEmptySubsequences: false).map(String.init)
+
+        guard parts.count == 3, parts[0] == prefix else {
+            return nil
+        }
+
+        guard let payloadBytes = base64URLDecode(parts[1]),
+              let signature = base64URLDecode(parts[2]),
+              let payload = decodePayload(from: payloadBytes) else {
+            return nil
+        }
+
+        return ParsedLicense(
+            payload: payload,
+            payloadBytes: payloadBytes,
+            signature: signature,
+            wire: trimmed
+        )
+    }
+
+    static func generate(name: String, email: String, privateKey: Curve25519.Signing.PrivateKey, issued: Int = Int(Date().timeIntervalSince1970)) throws -> String {
+        let trimmedName = canonicalName(name)
+        let trimmedEmail = canonicalEmail(email)
+
+        let basePayload = Payload(version: version, name: trimmedName, email: trimmedEmail, issued: issued, id: "")
+        let baseBytes = try canonicalPayloadBytes(basePayload.withoutID)
+        let provisionalSignature = try privateKey.signature(for: baseBytes)
+        let licenseID = recordID(from: provisionalSignature)
+
+        let finalPayload = Payload(version: version, name: trimmedName, email: trimmedEmail, issued: issued, id: licenseID)
+        let finalBytes = try canonicalPayloadBytes(finalPayload)
+        let finalSignature = try privateKey.signature(for: finalBytes)
+
+        return [
+            prefix,
+            base64URLEncode(finalBytes),
+            base64URLEncode(finalSignature),
+        ].joined(separator: ".")
     }
 
     static func canonicalName(_ name: String) -> String {
@@ -65,15 +134,63 @@ enum LicenseKey {
         })
     }
 
-    private static func hmacBytes(name: String, email: String) -> [UInt8] {
-        let payload = canonicalEmail(email) + "\n" + canonicalName(name)
-        let key = SymmetricKey(data: Data(LicenseSecrets.secret.utf8))
-        let mac = HMAC<SHA256>.authenticationCode(for: Data(payload.utf8), using: key)
+    static func canonicalPayloadBytes(_ payload: Payload) throws -> Data {
+        guard let data = canonicalPayloadJSON(payload).data(using: .utf8) else {
+            throw CocoaError(.coderInvalidValue)
+        }
 
-        return Array(Data(mac).prefix(16))
+        return data
     }
 
-    private static func encode(_ bytes: [UInt8]) -> String {
+    static func canonicalPayloadJSON(_ payload: Payload) -> String {
+        var parts: [String] = []
+
+        parts.append("\"email\":\"\(escapeJSON(payload.email))\"")
+        if !payload.id.isEmpty {
+            parts.append("\"id\":\"\(escapeJSON(payload.id))\"")
+        }
+        parts.append("\"issued\":\(payload.issued)")
+        parts.append("\"name\":\"\(escapeJSON(payload.name))\"")
+        parts.append("\"v\":\(payload.version)")
+
+        return "{\(parts.joined(separator: ","))}"
+    }
+
+    private static func decodePayload(from data: Data) -> Payload? {
+        guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let version = object["v"] as? Int,
+              let name = object["name"] as? String,
+              let email = object["email"] as? String,
+              let issued = object["issued"] as? Int,
+              let id = object["id"] as? String else {
+            return nil
+        }
+
+        return Payload(version: version, name: name, email: email, issued: issued, id: id)
+    }
+
+    private static func verifySignature(payloadBytes: Data, signature: Data) -> Bool {
+        guard let publicKeyData = publicKeyOverride ?? Optional(LicenseSecrets.publicKeyData),
+              publicKeyData.count == 32,
+              let publicKey = try? Curve25519.Signing.PublicKey(rawRepresentation: publicKeyData) else {
+            return false
+        }
+
+        return publicKey.isValidSignature(signature, for: payloadBytes)
+    }
+
+    private static func recordID(from signature: Data) -> String {
+        let encoded = crockfordEncode(Array(signature))
+        guard encoded.count >= 12 else {
+            return encoded
+        }
+
+        return String(encoded.suffix(12))
+    }
+
+    private static let alphabet = Array("0123456789ABCDEFGHJKMNPQRSTVWXYZ")
+
+    private static func crockfordEncode(_ bytes: [UInt8]) -> String {
         var buffer: UInt = 0
         var bits = 0
         var output = ""
@@ -91,38 +208,39 @@ enum LicenseKey {
 
         if bits > 0 {
             let index = Int((buffer << (5 - bits)) & 31)
-
             output.append(alphabet[index])
         }
 
         return output
     }
 
-    private static func format(_ encoded: String) -> String {
-        stride(from: 0, to: encoded.count, by: 5).map { start in
-            let from = encoded.index(encoded.startIndex, offsetBy: start)
-            let to = encoded.index(from, offsetBy: 5, limitedBy: encoded.endIndex) ?? encoded.endIndex
-            
-            return String(encoded[from..<to])
-        }
-        .filter { !$0.isEmpty }
-        .joined(separator: "-")
+    private static func escapeJSON(_ value: String) -> String {
+        value
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
     }
 
-    private static func constantTimeEquals(_ left: String, _ right: String) -> Bool {
-        let leftBytes = Array(left.utf8)
-        let rightBytes = Array(right.utf8)
+    private static func base64URLEncode(_ data: Data) -> String {
+        data.base64EncodedString()
+            .replacingOccurrences(of: "+", with: "-")
+            .replacingOccurrences(of: "/", with: "_")
+            .replacingOccurrences(of: "=", with: "")
+    }
 
-        guard leftBytes.count == rightBytes.count else {
-            return false
-        }
+    private static func base64URLDecode(_ value: String) -> Data? {
+        var base64 = value
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
 
-        var difference: UInt8 = 0
-        
-        for index in leftBytes.indices {
-            difference |= leftBytes[index] ^ rightBytes[index]
-        }
+        let padding = (4 - (base64.count % 4)) % 4
+        base64.append(String(repeating: "=", count: padding))
 
-        return difference == 0
+        return Data(base64Encoded: base64)
+    }
+}
+
+private extension LicenseKey.Payload {
+    var withoutID: LicenseKey.Payload {
+        LicenseKey.Payload(version: version, name: name, email: email, issued: issued, id: "")
     }
 }

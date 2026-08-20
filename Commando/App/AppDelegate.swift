@@ -20,6 +20,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         CommandStore.start()
         ExampleCommandSet.installIfNeeded()
         applyDockIconPreference()
+        LicenseStatus.hydrateFromStorage()
+        LicenseStatus.runStartupIntegrityCheck()
         UpdateChecker.checkForUpdateIfNeeded()
 
         NotificationCenter.default.addObserver(
@@ -43,7 +45,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             object: nil
         )
 
-        LicenseStatus.refreshBanStatus()
+        LicenseStatus.refreshRemoteStatus()
+        LicenseStatus.startPeriodicRemoteRefreshIfNeeded()
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {

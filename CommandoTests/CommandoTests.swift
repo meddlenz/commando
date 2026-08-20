@@ -3,8 +3,29 @@
 //  CommandoTests
 //
 
+import CryptoKit
 import XCTest
 @testable import Commando
+
+private enum TestLicenseSupport {
+    static let publicKeyBase64 = "A6EHv/POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg="
+    static let privateKeySeed = Data((0 ..< 32).map(UInt8.init))
+    static let crossLanguageKey =
+        "COMMANDO1.eyJlbWFpbCI6InBhdEBleGFtcGxlLmNvbSIsImlkIjoiWlNSOUFXTUZTVzM4IiwiaXNzdWVkIjoxNzI0MTQwODAwLCJuYW1lIjoiUGF0IEV4YW1wbGUiLCJ2IjoxfQ.o-HUPhulTsnFAZmIZ_Dca63GmMMhouxl6veQk7-ZdmrHFdV4a7hszxAnWtb9vNQl9Dlv4WW8cQjNsghNG5WbBg"
+
+    static func activateTestOverrides() {
+        LicenseStatus.resetSessionState()
+        LicenseKey.publicKeyOverride = Data(base64Encoded: publicKeyBase64)
+        RegistrationKeychain.keyOverride = SymmetricKey(size: .bits256)
+        LicenseGuard.skipIntegrityChecks = true
+        LicenseRemoteCheck.skipNetwork = true
+    }
+
+    static func generateKey(name: String, email: String, issued: Int = 1_724_140_800) throws -> String {
+        let privateKey = try Curve25519.Signing.PrivateKey(rawRepresentation: privateKeySeed)
+        return try LicenseKey.generate(name: name, email: email, privateKey: privateKey, issued: issued)
+    }
+}
 
 class CommandoTests: XCTestCase {
 
@@ -326,6 +347,46 @@ class CommandoTests: XCTestCase {
         XCTAssertFalse(launcher.contains("| /bin/bash"))
     }
 
+    func testUpdateInfoParserReadsMinimumVersionAllowed() {
+        let xml = """
+        <updateInfo>
+          <currentMacOS>2.0.0</currentMacOS>
+          <minimumVersionAllowed>1.5.0</minimumVersionAllowed>
+          <macOSUrl>https://files.mac-attic.com/commando.dmg</macOSUrl>
+        </updateInfo>
+        """.data(using: .utf8)!
+
+        let info = UpdateInfoParser.parse(xml)
+        XCTAssertEqual(info?.minimumVersionAllowed, "1.5.0")
+        XCTAssertEqual(info?.currentMacOS, "2.0.0")
+    }
+
+    func testMinimumVersionAllowedLocksApp() {
+        AppLock.clear()
+        defer { AppLock.clear() }
+
+        let updateInfo = UpdateInfo(
+            currentMacOS: "2.0.0",
+            currentMacOSChangeLog: "Required update",
+            macOSUrl: URL(string: "https://files.mac-attic.com/commando.dmg"),
+            minimumVersionAllowed: "9.0.0"
+        )
+
+        UpdateChecker.enforceMinimumVersionIfNeeded(updateInfo)
+        XCTAssertTrue(AppLock.isLocked)
+    }
+
+    func testLicenseGuardDetectsSentinelMismatch() throws {
+        TestLicenseSupport.activateTestOverrides()
+        LicenseGuard.integrityIssueOverride = .tamperedSentinel
+        defer {
+            LicenseGuard.skipIntegrityChecks = true
+            LicenseGuard.integrityIssueOverride = nil
+        }
+
+        XCTAssertFalse(LicenseGuard.permits(.run))
+    }
+
     func testUpdateCheckerComparesSemanticVersions() {
         XCTAssertTrue(UpdateChecker.isVersion("2.1", greaterThan: "1.0"))
         XCTAssertFalse(UpdateChecker.isVersion("1.0", greaterThan: "2.1"))
@@ -454,21 +515,22 @@ class CommandoTests: XCTestCase {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         let originalOverride = CommandStore.storageDirectoryOverride
         let originalLicenseDirectory = LicenseStatus.storageDirectoryOverride
-        let originalBan = LicenseBanCheck.responseOverride
+        let originalBan = LicenseRemoteCheck.responseOverride
 
         CommandStore.storageDirectoryOverride = directory
         CommandStore.resetCache()
         LicenseStatus.storageDirectoryOverride = directory
-        LicenseBanCheck.responseOverride = false
+        TestLicenseSupport.activateTestOverrides()
+        LicenseRemoteCheck.responseOverride = LicenseRemoteCheck.RemoteResult(banned: false, ok: true)
         let name = "Pat Example"
         let email = "pat@example.com"
-        try LicenseStatus.register(name: name, email: email, key: LicenseKey.generate(name: name, email: email))
+        try LicenseStatus.register(name: name, email: email, key: try TestLicenseSupport.generateKey(name: name, email: email))
 
         defer {
             CommandStore.storageDirectoryOverride = originalOverride
             CommandStore.resetCache()
             LicenseStatus.storageDirectoryOverride = originalLicenseDirectory
-            LicenseBanCheck.responseOverride = originalBan
+            LicenseRemoteCheck.responseOverride = originalBan
             try? FileManager.default.removeItem(at: directory)
         }
 
@@ -552,14 +614,17 @@ class CommandoTests: XCTestCase {
         }
     }
 
-    func testLicenseKeyRoundTripAndRejectsInvalidKey() {
-        let name = "Jordan Trbuhovic"
-        let email = "jordan@example.com"
-        let key = LicenseKey.generate(name: name, email: email)
+    func testLicenseKeyRoundTripAndRejectsInvalidKey() throws {
+        TestLicenseSupport.activateTestOverrides()
 
-        XCTAssertEqual(key.split(separator: "-").count, 6)
+        let name = "Pat Example"
+        let email = "pat@example.com"
+        let key = try TestLicenseSupport.generateKey(name: name, email: email)
+
+        XCTAssertTrue(key.hasPrefix("COMMANDO1."))
         XCTAssertTrue(LicenseKey.isValid(name: name, email: email, key: key))
-        XCTAssertTrue(LicenseKey.isValid(name: "  Jordan   Trbuhovic  ", email: "Jordan@Example.com", key: key.lowercased()))
+        XCTAssertTrue(LicenseKey.isValid(name: "  Pat   Example  ", email: "Pat@Example.com", key: key))
+        XCTAssertTrue(LicenseKey.isValid(name: name, email: email, key: TestLicenseSupport.crossLanguageKey))
         XCTAssertFalse(LicenseKey.isValid(name: name, email: email, key: "AAAAA-BBBBB-CCCCC-DDDDD"))
         XCTAssertFalse(LicenseKey.isValid(name: name, email: "other@example.com", key: key))
     }
@@ -567,19 +632,13 @@ class CommandoTests: XCTestCase {
     func testLicenseStatusRegisterPersistsValidKey() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         let originalDirectory = LicenseStatus.storageDirectoryOverride
-        let defaults = UserDefaults.standard
-        let originalName = defaults.string(forKey: "licenseName")
-        let originalEmail = defaults.string(forKey: "licenseEmail")
-        let originalKey = defaults.string(forKey: "licenseKey")
-        let originalBan = LicenseBanCheck.responseOverride
+        let originalBan = LicenseRemoteCheck.responseOverride
         LicenseStatus.storageDirectoryOverride = directory
-        LicenseBanCheck.responseOverride = false
+        TestLicenseSupport.activateTestOverrides()
+        LicenseRemoteCheck.responseOverride = LicenseRemoteCheck.RemoteResult(banned: false, ok: true)
         defer {
             LicenseStatus.storageDirectoryOverride = originalDirectory
-            LicenseBanCheck.responseOverride = originalBan
-            defaults.set(originalName, forKey: "licenseName")
-            defaults.set(originalEmail, forKey: "licenseEmail")
-            defaults.set(originalKey, forKey: "licenseKey")
+            LicenseRemoteCheck.responseOverride = originalBan
             try? FileManager.default.removeItem(at: directory)
         }
 
@@ -587,7 +646,8 @@ class CommandoTests: XCTestCase {
 
         let name = "Pat Example"
         let email = "pat@example.com"
-        try LicenseStatus.register(name: name, email: email, key: LicenseKey.generate(name: name, email: email))
+        let generatedKey = try TestLicenseSupport.generateKey(name: name, email: email)
+        try LicenseStatus.register(name: name, email: email, key: generatedKey)
 
         XCTAssertTrue(FileManager.default.fileExists(atPath: LicenseStatus.registrationFileURL.path))
         let stored = try Data(contentsOf: LicenseStatus.registrationFileURL)
@@ -597,25 +657,24 @@ class CommandoTests: XCTestCase {
         XCTAssertThrowsError(try LicenseStatus.register(name: name, email: email, key: "nope"))
     }
 
-    func testLicenseKeyBanTokenIsStableTwelveCharacters() {
-        let name = "Jordan Trbuhovic"
-        let email = "jordan@example.com"
-        let key = LicenseKey.generate(name: name, email: email)
+    func testLicenseKeyBanTokenIsStableTwelveCharacters() throws {
+        TestLicenseSupport.activateTestOverrides()
+
+        let key = try TestLicenseSupport.generateKey(name: "Pat Example", email: "pat@example.com", issued: 1_724_140_800)
         let token = LicenseKey.banToken(from: key)
 
         XCTAssertEqual(token.count, 12)
-        XCTAssertEqual(token, LicenseKey.banToken(from: key.lowercased()))
-        XCTAssertEqual(token, LicenseKey.banToken(from: LicenseKey.normalized(key)))
+        XCTAssertEqual(LicenseKey.banToken(from: TestLicenseSupport.crossLanguageKey), "ZSR9AWMFSW38")
         XCTAssertFalse(token.contains("-"))
     }
 
-    func testLicenseBanCheckParsesJSONBody() {
-        XCTAssertEqual(LicenseBanCheck.parseResponse(data: Data("{\"banned\":true}".utf8)), true)
-        XCTAssertEqual(LicenseBanCheck.parseResponse(data: Data("{\"banned\":false}".utf8)), false)
-        XCTAssertNil(LicenseBanCheck.parseResponse(data: Data("not-json".utf8)))
-        XCTAssertNil(LicenseBanCheck.parseResponse(data: Data("{}".utf8)))
+    func testLicenseRemoteCheckParsesJSONBody() {
+        XCTAssertEqual(LicenseRemoteCheck.parseResponse(data: Data("{\"banned\":true,\"ok\":true}".utf8))?.banned, true)
+        XCTAssertEqual(LicenseRemoteCheck.parseResponse(data: Data("{\"banned\":false,\"ok\":true}".utf8))?.banned, false)
+        XCTAssertNil(LicenseRemoteCheck.parseResponse(data: Data("not-json".utf8)))
+        XCTAssertNil(LicenseRemoteCheck.parseResponse(data: Data("{}".utf8)))
 
-        let url = LicenseBanCheck.requestURL(token: "ABCDEF123456")
+        let url = LicenseRemoteCheck.requestURL(token: "ABCDEF123456", version: "1.0.0", reason: "activation")
         XCTAssertEqual(url?.host, "proxy.manticore.nz")
         XCTAssertTrue(url?.query?.contains("token=ABCDEF123456") == true)
     }
@@ -623,18 +682,19 @@ class CommandoTests: XCTestCase {
     func testLicenseStatusClearRemovesRegistrationFile() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         let originalDirectory = LicenseStatus.storageDirectoryOverride
-        let originalBan = LicenseBanCheck.responseOverride
+        let originalBan = LicenseRemoteCheck.responseOverride
         LicenseStatus.storageDirectoryOverride = directory
-        LicenseBanCheck.responseOverride = false
+        TestLicenseSupport.activateTestOverrides()
+        LicenseRemoteCheck.responseOverride = LicenseRemoteCheck.RemoteResult(banned: false, ok: true)
         defer {
             LicenseStatus.storageDirectoryOverride = originalDirectory
-            LicenseBanCheck.responseOverride = originalBan
+            LicenseRemoteCheck.responseOverride = originalBan
             try? FileManager.default.removeItem(at: directory)
         }
 
         let name = "Pat Example"
         let email = "pat@example.com"
-        try LicenseStatus.register(name: name, email: email, key: LicenseKey.generate(name: name, email: email))
+        try LicenseStatus.register(name: name, email: email, key: try TestLicenseSupport.generateKey(name: name, email: email))
         XCTAssertTrue(LicenseStatus.isUnlocked)
 
         LicenseStatus.clear()
@@ -647,18 +707,19 @@ class CommandoTests: XCTestCase {
     func testLicenseStatusRejectsBannedKey() throws {
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         let originalDirectory = LicenseStatus.storageDirectoryOverride
-        let originalBan = LicenseBanCheck.responseOverride
+        let originalBan = LicenseRemoteCheck.responseOverride
         LicenseStatus.storageDirectoryOverride = directory
-        LicenseBanCheck.responseOverride = true
+        TestLicenseSupport.activateTestOverrides()
+        LicenseRemoteCheck.responseOverride = LicenseRemoteCheck.RemoteResult(banned: true, ok: true)
         defer {
             LicenseStatus.storageDirectoryOverride = originalDirectory
-            LicenseBanCheck.responseOverride = originalBan
+            LicenseRemoteCheck.responseOverride = originalBan
             try? FileManager.default.removeItem(at: directory)
         }
 
         let name = "Pat Example"
         let email = "pat@example.com"
-        XCTAssertThrowsError(try LicenseStatus.register(name: name, email: email, key: LicenseKey.generate(name: name, email: email))) { error in
+        XCTAssertThrowsError(try LicenseStatus.register(name: name, email: email, key: try TestLicenseSupport.generateKey(name: name, email: email))) { error in
             guard case LicenseStatus.RegistrationError.revoked = error else {
                 XCTFail("Expected revoked, got \(error)")
                 return
@@ -668,7 +729,39 @@ class CommandoTests: XCTestCase {
         XCTAssertFalse(LicenseStatus.isUnlocked)
     }
 
+    func testCachedRevocationPersistsOffline() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
+        let originalDirectory = LicenseStatus.storageDirectoryOverride
+        LicenseStatus.storageDirectoryOverride = directory
+        TestLicenseSupport.activateTestOverrides()
+        defer {
+            LicenseStatus.storageDirectoryOverride = originalDirectory
+            try? FileManager.default.removeItem(at: directory)
+        }
+
+        let name = "Pat Example"
+        let email = "pat@example.com"
+        LicenseRemoteCheck.responseOverride = LicenseRemoteCheck.RemoteResult(banned: false, ok: true)
+        try LicenseStatus.register(name: name, email: email, key: try TestLicenseSupport.generateKey(name: name, email: email))
+
+        LicenseRemoteCheck.responseOverride = LicenseRemoteCheck.RemoteResult(banned: true, ok: true)
+        LicenseStatus.refreshRemoteStatus()
+
+        let start = Date()
+        while !LicenseStatus.isRevoked && Date().timeIntervalSince(start) < 2 {
+            RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+        }
+
+        XCTAssertTrue(LicenseStatus.isRevoked)
+
+        LicenseRemoteCheck.responseOverride = nil
+        LicenseRemoteCheck.skipNetwork = true
+        LicenseStatus.hydrateFromStorage()
+        XCTAssertTrue(LicenseStatus.isRevoked)
+    }
+
     func testRevokedLicenseAppliesUnregisteredLimits() throws {
+        TestLicenseSupport.activateTestOverrides()
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         let originalRevoked = LicenseStatus.isRevokedOverride
         let originalLicenseDirectory = LicenseStatus.storageDirectoryOverride
@@ -738,22 +831,23 @@ class CommandoTests: XCTestCase {
     }
 
     func testUnregisteredLicenseCanUseFreeAllowances() throws {
+        TestLicenseSupport.activateTestOverrides()
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         let originalRevoked = LicenseStatus.isRevokedOverride
         let originalLicenseDirectory = LicenseStatus.storageDirectoryOverride
-        let originalBan = LicenseBanCheck.responseOverride
+        let originalBan = LicenseRemoteCheck.responseOverride
 
         let originalCommandDirectory = CommandStore.storageDirectoryOverride
 
         LicenseStatus.isRevokedOverride = true
         LicenseStatus.storageDirectoryOverride = directory
-        LicenseBanCheck.responseOverride = true
+        LicenseRemoteCheck.responseOverride = LicenseRemoteCheck.RemoteResult(banned: true, ok: true)
         CommandStore.storageDirectoryOverride = directory
         CommandStore.resetCache()
         defer {
             LicenseStatus.isRevokedOverride = originalRevoked
             LicenseStatus.storageDirectoryOverride = originalLicenseDirectory
-            LicenseBanCheck.responseOverride = originalBan
+            LicenseRemoteCheck.responseOverride = originalBan
             CommandStore.storageDirectoryOverride = originalCommandDirectory
             CommandStore.resetCache()
             try? FileManager.default.removeItem(at: directory)
@@ -796,6 +890,7 @@ class CommandoTests: XCTestCase {
     }
 
     func testLicenseStatusBlocksUnregisteredImport() throws {
+        TestLicenseSupport.activateTestOverrides()
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         let originalOverride = CommandStore.storageDirectoryOverride
         let originalLicenseDirectory = LicenseStatus.storageDirectoryOverride

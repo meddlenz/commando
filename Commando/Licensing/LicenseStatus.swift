@@ -17,6 +17,7 @@ enum LicenseStatus {
         case registrationRequired
         case missingFields
         case invalidKey
+        case updateRequired
 
         var errorDescription: String? {
             switch self {
@@ -28,18 +29,17 @@ enum LicenseStatus {
                 return "Please purchase Commando to unlock its full capabilities."
             case .revoked:
                 return "This license has been revoked. Please get in touch with Manticore SW for more information."
+            case .updateRequired:
+                return AppLock.updateRequiredMessage
             }
         }
     }
 
-    private static let legacyNameKey = "licenseName"
-    private static let legacyEmailKey = "licenseEmail"
-    private static let legacyKeyKey = "licenseKey"
-
     static var isRevokedOverride: Bool?
     static var storageDirectoryOverride: URL?
-    private static var cachedBanned: Bool?
-    private static var banCheckID: UInt64 = 0
+    private static var cachedRevoked: Bool?
+    private static var lastSuccessfulRemoteCheck: Date?
+    private static var remoteCheckID: UInt64 = 0
 
     static var registrationFileURL: URL {
         if let storageDirectoryOverride {
@@ -50,6 +50,14 @@ enum LicenseStatus {
     }
 
     static var isUnlocked: Bool {
+        isUnlockedPublicState
+    }
+
+    static var isUnlockedPublicState: Bool {
+        if AppLock.isLocked {
+            return false
+        }
+
         if isRevoked {
             return false
         }
@@ -58,11 +66,15 @@ enum LicenseStatus {
     }
 
     static var isRevoked: Bool {
-        isRevokedOverride ?? (cachedBanned == true)
+        isRevokedOverride ?? (cachedRevoked == true)
+    }
+
+    static var storedLicenseID: String? {
+        storedRecord?.licenseID
     }
 
     static var registeredLine: String? {
-        if isRevoked {
+        if isRevoked || AppLock.isLocked {
             return nil
         }
 
@@ -77,7 +89,17 @@ enum LicenseStatus {
         storedRecord?.name
     }
 
+    static func hasValidStoredLicense() -> Bool {
+        guard let record = readRecord() else {
+            return false
+        }
+
+        return LicenseKey.isValid(name: record.name, email: record.email, key: record.key)
+    }
+
     static func register(name: String, email: String, key: String) throws {
+        try ensureNotAppLocked()
+
         let trimmedName = LicenseKey.canonicalName(name)
         let trimmedEmail = LicenseKey.canonicalEmail(email)
         let trimmedKey = key.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -90,7 +112,20 @@ enum LicenseStatus {
             throw RegistrationError.invalidKey
         }
 
-        if LicenseBanCheck.isBanned(token: LicenseKey.banToken(from: trimmedKey)) {
+        let licenseID = LicenseKey.licenseID(from: trimmedKey) ?? LicenseKey.banToken(from: trimmedKey)
+
+        if cachedRevoked == true {
+            throw RegistrationError.revoked
+        }
+
+        let remote = LicenseRemoteCheck.refresh(
+            token: licenseID,
+            version: AppInfo.shortVersion,
+            reason: "register"
+        )
+
+        if let remote, remote.banned {
+            cachedRevoked = true
             throw RegistrationError.revoked
         }
 
@@ -98,53 +133,109 @@ enum LicenseStatus {
             Record(
                 name: trimmedName,
                 email: trimmedEmail,
-                key: LicenseKey.generate(name: trimmedName, email: trimmedEmail)
+                key: trimmedKey,
+                licenseID: licenseID,
+                cachedRevoked: false,
+                lastSuccessfulRemoteCheck: remote == nil ? nil : Date()
             )
         )
-        cachedBanned = false
-        banCheckID += 1
-        clearLegacyDefaults()
+
+        cachedRevoked = false
+        lastSuccessfulRemoteCheck = remote == nil ? nil : Date()
+        remoteCheckID += 1
+        LicenseGuard.refreshSentinel(forUnlocked: true)
         NotificationCenter.default.post(name: .licenseDidChange, object: nil)
     }
 
     static func clear() {
-        banCheckID += 1
-        cachedBanned = nil
+        remoteCheckID += 1
+        cachedRevoked = nil
+        lastSuccessfulRemoteCheck = nil
         try? FileManager.default.removeItem(at: registrationFileURL)
-
-        clearLegacyDefaults()
+        LicenseGuard.refreshSentinel(forUnlocked: false)
         NotificationCenter.default.post(name: .licenseDidChange, object: nil)
     }
 
-    static func refreshBanStatus() {
-        guard let record = storedRecord, LicenseKey.isValid(name: record.name, email: record.email, key: record.key) else {
-            cachedBanned = nil
+    static func hydrateFromStorage() {
+        _ = readRecord()
+        if hasValidStoredKey {
+            LicenseGuard.refreshSentinel(forUnlocked: !isRevoked)
+        }
+    }
+
+    static func resetSessionState() {
+        remoteCheckID += 1
+        cachedRevoked = nil
+        lastSuccessfulRemoteCheck = nil
+        isRevokedOverride = nil
+    }
+
+    private static var periodicRefreshTimer: Timer?
+    private static let remoteRefreshInterval: TimeInterval = 60 * 60 * 24
+
+    static func startPeriodicRemoteRefreshIfNeeded() {
+        refreshRemoteStatusIfStale()
+        periodicRefreshTimer?.invalidate()
+        periodicRefreshTimer = Timer.scheduledTimer(withTimeInterval: remoteRefreshInterval, repeats: true) { _ in
+            refreshRemoteStatus()
+        }
+    }
+
+    static func refreshRemoteStatusIfStale() {
+        guard storedRecord != nil else {
             return
         }
 
-        let checkID = banCheckID
+        if let lastSuccessfulRemoteCheck,
+           Date().timeIntervalSince(lastSuccessfulRemoteCheck) < remoteRefreshInterval {
+            return
+        }
+
+        refreshRemoteStatus()
+    }
+
+    static func refreshRemoteStatus() {
+        guard let record = storedRecord,
+              LicenseKey.isValid(name: record.name, email: record.email, key: record.key) else {
+            cachedRevoked = nil
+            return
+        }
+
+        let checkID = remoteCheckID
+        let token = record.licenseID
+
         DispatchQueue.global(qos: .utility).async {
-           
-            let banned = LicenseBanCheck.isBanned(token: LicenseKey.banToken(from: record.key))
+            let remote = LicenseRemoteCheck.refresh(token: token, version: AppInfo.shortVersion, reason: "activation")
 
             DispatchQueue.main.async {
-                guard checkID == banCheckID else {
+                guard checkID == remoteCheckID else {
                     return
                 }
 
                 guard hasValidStoredKey else {
-                    cachedBanned = nil
+                    cachedRevoked = nil
                     return
                 }
 
-                cachedBanned = banned
+                applyRemoteResult(remote, to: record)
                 NotificationCenter.default.post(name: .licenseDidChange, object: nil)
             }
         }
     }
 
+    static func runStartupIntegrityCheck() {
+        guard let issue = LicenseGuard.runIntegrityChecks() else {
+            return
+        }
+
+        LicenseGuard.reportIntegrityIssue(issue)
+    }
+
     static func ensureCanAddCommandSet(existingCount: Int) throws {
-        guard !isUnlocked, existingCount >= 1 else {
+        try ensureNotAppLocked()
+        try ensureIntegrityAllowsAccess()
+
+        guard !LicenseGuard.permits(.addCommandSet), existingCount >= 1 else {
             return
         }
 
@@ -152,7 +243,10 @@ enum LicenseStatus {
     }
 
     static func ensureCanAddSession() throws {
-        guard !isUnlocked else {
+        try ensureNotAppLocked()
+        try ensureIntegrityAllowsAccess()
+
+        guard !LicenseGuard.permits(.addSession) else {
             return
         }
 
@@ -160,7 +254,10 @@ enum LicenseStatus {
     }
 
     static func ensureCanSaveSessions(_ count: Int) throws {
-        guard !isUnlocked, count > 1 else {
+        try ensureNotAppLocked()
+        try ensureIntegrityAllowsAccess()
+
+        guard !LicenseGuard.permits(.addSession), count > 1 else {
             return
         }
 
@@ -168,7 +265,10 @@ enum LicenseStatus {
     }
 
     static func ensureCanImport(resultingCount: Int) throws {
-        guard !isUnlocked, resultingCount > 1 else {
+        try ensureNotAppLocked()
+        try ensureIntegrityAllowsAccess()
+
+        guard !LicenseGuard.permits(.importSets), resultingCount > 1 else {
             return
         }
 
@@ -176,7 +276,10 @@ enum LicenseStatus {
     }
 
     static func ensureCanRun(commandSet: CommandSet) throws {
-        guard !isUnlocked else {
+        try ensureNotAppLocked()
+        try ensureIntegrityAllowsAccess()
+
+        guard !LicenseGuard.permits(.run) else {
             return
         }
 
@@ -189,56 +292,28 @@ enum LicenseStatus {
     }
 
     private static var restrictionError: RegistrationError {
-        isRevoked ? .revoked : .registrationRequired
+        if AppLock.isLocked {
+            return .updateRequired
+        }
+
+        return isRevoked ? .revoked : .registrationRequired
     }
 
     private struct Record: Codable {
         var name: String
         var email: String
         var key: String
+        var licenseID: String
+        var cachedRevoked: Bool?
+        var lastSuccessfulRemoteCheck: Date?
     }
 
     private static var hasValidStoredKey: Bool {
-        guard let record = storedRecord else {
-            return false
-        }
-
-        return LicenseKey.isValid(name: record.name, email: record.email, key: record.key)
+        hasValidStoredLicense()
     }
 
     private static var storedRecord: Record? {
-        migrateLegacyDefaultsIfNeeded()
-
-        return readRecord()
-    }
-
-    private static func migrateLegacyDefaultsIfNeeded() {
-        guard storageDirectoryOverride == nil else {
-            return
-        }
-
-        let defaults = UserDefaults.standard
-        guard defaults.object(forKey: legacyNameKey) != nil
-            || defaults.object(forKey: legacyEmailKey) != nil
-            || defaults.object(forKey: legacyKeyKey) != nil else {
-            return
-        }
-
-        if readRecord() == nil,
-           let name = defaults.string(forKey: legacyNameKey),
-           let email = defaults.string(forKey: legacyEmailKey),
-           let key = defaults.string(forKey: legacyKeyKey),
-           LicenseKey.isValid(name: name, email: email, key: key) {
-            try? write(
-                Record(
-                    name: LicenseKey.canonicalName(name),
-                    email: LicenseKey.canonicalEmail(email),
-                    key: LicenseKey.generate(name: name, email: email)
-                )
-            )
-        }
-
-        clearLegacyDefaults()
+        readRecord()
     }
 
     private static func readRecord() -> Record? {
@@ -252,7 +327,13 @@ enum LicenseStatus {
             return nil
         }
 
-        return try? JSONDecoder().decode(Record.self, from: plaintext)
+        guard let record = try? JSONDecoder().decode(Record.self, from: plaintext) else {
+            return nil
+        }
+
+        cachedRevoked = record.cachedRevoked
+        lastSuccessfulRemoteCheck = record.lastSuccessfulRemoteCheck
+        return record
     }
 
     private static func write(_ record: Record) throws {
@@ -262,9 +343,49 @@ enum LicenseStatus {
         try encrypt(plaintext).write(to: url, options: .atomic)
     }
 
+    static func applyAutoBanFromServer() {
+        cachedRevoked = true
+        persistRemoteState(revoked: true, checkedAt: Date())
+        LicenseGuard.refreshSentinel(forUnlocked: false)
+        NotificationCenter.default.post(name: .licenseDidChange, object: nil)
+    }
+
+    private static func applyRemoteResult(_ remote: LicenseRemoteCheck.RemoteResult?, to record: Record) {
+        guard let remote else {
+            if cachedRevoked == true {
+                return
+            }
+
+            return
+        }
+
+        if remote.banned {
+            cachedRevoked = true
+            persistRemoteState(revoked: true, checkedAt: Date())
+
+            
+            return
+        }
+
+        cachedRevoked = false
+        lastSuccessfulRemoteCheck = Date()
+        persistRemoteState(revoked: false, checkedAt: Date())
+        LicenseGuard.refreshSentinel(forUnlocked: true)
+    }
+
+    private static func persistRemoteState(revoked: Bool, checkedAt: Date) {
+        guard var record = readRecord() else {
+            return
+        }
+
+        record.cachedRevoked = revoked
+        record.lastSuccessfulRemoteCheck = checkedAt
+        try? write(record)
+    }
+
     private static func encrypt(_ plaintext: Data) throws -> Data {
-        let sealed = try AES.GCM.seal(plaintext, using: fileKey())
-        
+        let sealed = try AES.GCM.seal(plaintext, using: try RegistrationKeychain.fileKey())
+
         guard let combined = sealed.combined else {
             throw CocoaError(.fileWriteUnknown)
         }
@@ -273,18 +394,18 @@ enum LicenseStatus {
     }
 
     private static func decrypt(_ data: Data) throws -> Data {
-        try AES.GCM.open(try AES.GCM.SealedBox(combined: data), using: fileKey())
+        try AES.GCM.open(try AES.GCM.SealedBox(combined: data), using: try RegistrationKeychain.fileKey())
     }
 
-    private static func fileKey() -> SymmetricKey {
-        let material = Data(LicenseSecrets.secret.utf8) + Data("commando.registration.v1".utf8)
-        return SymmetricKey(data: Data(SHA256.hash(data: material)))
+    private static func ensureNotAppLocked() throws {
+        if AppLock.isLocked {
+            throw RegistrationError.updateRequired
+        }
     }
 
-    private static func clearLegacyDefaults() {
-        let defaults = UserDefaults.standard
-        defaults.removeObject(forKey: legacyNameKey)
-        defaults.removeObject(forKey: legacyEmailKey)
-        defaults.removeObject(forKey: legacyKeyKey)
+    private static func ensureIntegrityAllowsAccess() throws {
+        if LicenseGuard.integrityIssueOverride != nil || LicenseGuard.runIntegrityChecks() != nil {
+            throw restrictionError
+        }
     }
 }

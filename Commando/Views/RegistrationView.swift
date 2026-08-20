@@ -44,7 +44,7 @@ struct RegistrationView: View {
                 NSWorkspace.shared.open(AppInfo.purchaseURL)
             }
 
-            Text("Enter the name and email used when your license was issued. All details are case-sensitive.")
+            Text("Enter the name and email used when your license was issued. Registration keys begin with COMMANDO1. All details are case-sensitive.")
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
 

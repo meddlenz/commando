@@ -11,6 +11,7 @@ struct UpdateView: View {
     let version: String
     let message: String
     let downloadEnabled: Bool
+    var showsLaterButton: Bool = true
     var onDownload: () -> Void
     var onLater: () -> Void
 
@@ -92,7 +93,12 @@ struct UpdateView: View {
     private var footer: some View {
         HStack(spacing: 12) {
             Spacer()
-            Button("Later", action: onLater)
+            
+            if showsLaterButton {
+                Button("Later", action: onLater)
+            }
+
+
             DefaultActionButton(
                 title: UpdateChecker.updateActionTitle(),
                 isEnabled: downloadEnabled,

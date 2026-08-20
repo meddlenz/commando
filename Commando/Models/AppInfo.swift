@@ -9,7 +9,8 @@ import Foundation
 enum AppInfo {
     static let companyURL = URL(string: "https://manticore.nz")!
     static let purchaseURL = URL(string: "https://manticore.nz/commando/purchase")!
-    static let licenseCheckURL = URL(string: "https://proxy.manticore.nz/legacyai/commando/license")!
+    static let licenseCheckURL = LicenseEndpoints.checkURL
+    static let licenseReportURL = LicenseEndpoints.reportURL
     static let privacyURL = URL(string: "https://manticore.nz/commando/privacy")!
     static let termsURL = URL(string: "https://manticore.nz/commando/terms")!
     static let newsURL = URL(string: "https://manticore.nz/news")!
@@ -18,8 +19,12 @@ enum AppInfo {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "Commando"
     }
 
+    static var shortVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
+    }
+
     static var version: String {
-        let short = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
+        let short = shortVersion
         let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "1"
         return "\(short) (\(build))"
     }

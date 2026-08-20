@@ -34,7 +34,11 @@
 		CR3LIC012A86F94C00B4DC63 /* LicenseSecrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LIC002A86F94C00B4DC63 /* LicenseSecrets.swift */; };
 		CR3LIC013A86F94C00B4DC63 /* LicenseKey.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LIC003A86F94C00B4DC63 /* LicenseKey.swift */; };
 		CR3LIC014A86F94C00B4DC63 /* LicenseStatus.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LIC004A86F94C00B4DC63 /* LicenseStatus.swift */; };
-		CR3LIC015A86F94C00B4DC63 /* LicenseBanCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LIC005A86F94C00B4DC63 /* LicenseBanCheck.swift */; };
+		CR3LIC015A86F94C00B4DC63 /* LicenseRemoteCheck.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LIC005A86F94C00B4DC63 /* LicenseRemoteCheck.swift */; };
+		CR3LIC016A86F94C00B4DC63 /* LicenseGuard.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LIC006A86F94C00B4DC63 /* LicenseGuard.swift */; };
+		CR3LIC017A86F94C00B4DC63 /* RegistrationKeychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LIC007A86F94C00B4DC63 /* RegistrationKeychain.swift */; };
+		CR3LIC018A86F94C00B4DC63 /* AppLock.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LIC008A86F94C00B4DC63 /* AppLock.swift */; };
+		CR3LIC019A86F94C00B4DC63 /* LicenseEndpoints.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3LIC009A86F94C00B4DC63 /* LicenseEndpoints.swift */; };
 		CR3MBI012A86F94C00B4DC63 /* MenuBarIconSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3MBI002A86F94C00B4DC63 /* MenuBarIconSettings.swift */; };
 		CR3MOD022A86F94C00B4DC63 /* SSHConnection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3MOD012A86F94C00B4DC63 /* SSHConnection.swift */; };
 		CR3MOD042A86F94C00B4DC63 /* SSHStepParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CR3MOD032A86F94C00B4DC63 /* SSHStepParser.swift */; };
@@ -132,7 +136,11 @@
 		CR3LIC002A86F94C00B4DC63 /* LicenseSecrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseSecrets.swift; sourceTree = "<group>"; };
 		CR3LIC003A86F94C00B4DC63 /* LicenseKey.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseKey.swift; sourceTree = "<group>"; };
 		CR3LIC004A86F94C00B4DC63 /* LicenseStatus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseStatus.swift; sourceTree = "<group>"; };
-		CR3LIC005A86F94C00B4DC63 /* LicenseBanCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseBanCheck.swift; sourceTree = "<group>"; };
+		CR3LIC005A86F94C00B4DC63 /* LicenseRemoteCheck.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseRemoteCheck.swift; sourceTree = "<group>"; };
+		CR3LIC006A86F94C00B4DC63 /* LicenseGuard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseGuard.swift; sourceTree = "<group>"; };
+		CR3LIC007A86F94C00B4DC63 /* RegistrationKeychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationKeychain.swift; sourceTree = "<group>"; };
+		CR3LIC008A86F94C00B4DC63 /* AppLock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLock.swift; sourceTree = "<group>"; };
+		CR3LIC009A86F94C00B4DC63 /* LicenseEndpoints.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LicenseEndpoints.swift; sourceTree = "<group>"; };
 		CR3MBI002A86F94C00B4DC63 /* MenuBarIconSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIconSettings.swift; sourceTree = "<group>"; };
 		CR3MOD012A86F94C00B4DC63 /* SSHConnection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHConnection.swift; sourceTree = "<group>"; };
 		CR3MOD032A86F94C00B4DC63 /* SSHStepParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHStepParser.swift; sourceTree = "<group>"; };
@@ -365,7 +373,11 @@
 				CR3LIC002A86F94C00B4DC63 /* LicenseSecrets.swift */,
 				CR3LIC003A86F94C00B4DC63 /* LicenseKey.swift */,
 				CR3LIC004A86F94C00B4DC63 /* LicenseStatus.swift */,
-				CR3LIC005A86F94C00B4DC63 /* LicenseBanCheck.swift */,
+				CR3LIC005A86F94C00B4DC63 /* LicenseRemoteCheck.swift */,
+				CR3LIC006A86F94C00B4DC63 /* LicenseGuard.swift */,
+				CR3LIC007A86F94C00B4DC63 /* RegistrationKeychain.swift */,
+				CR3LIC009A86F94C00B4DC63 /* LicenseEndpoints.swift */,
+				CR3LIC008A86F94C00B4DC63 /* AppLock.swift */,
 			);
 			path = Licensing;
 			sourceTree = "<group>";
@@ -562,7 +574,11 @@
 				CR3LIC012A86F94C00B4DC63 /* LicenseSecrets.swift in Sources */,
 				CR3LIC013A86F94C00B4DC63 /* LicenseKey.swift in Sources */,
 				CR3LIC014A86F94C00B4DC63 /* LicenseStatus.swift in Sources */,
-				CR3LIC015A86F94C00B4DC63 /* LicenseBanCheck.swift in Sources */,
+				CR3LIC015A86F94C00B4DC63 /* LicenseRemoteCheck.swift in Sources */,
+				CR3LIC016A86F94C00B4DC63 /* LicenseGuard.swift in Sources */,
+				CR3LIC017A86F94C00B4DC63 /* RegistrationKeychain.swift in Sources */,
+				CR3LIC019A86F94C00B4DC63 /* LicenseEndpoints.swift in Sources */,
+				CR3LIC018A86F94C00B4DC63 /* AppLock.swift in Sources */,
 				CR3APP022A86F94C00B4DC63 /* StatusMenu.swift in Sources */,
 				CR3APP042A86F94C00B4DC63 /* Actions.swift in Sources */,
 				CR3MOD022A86F94C00B4DC63 /* SSHConnection.swift in Sources */,

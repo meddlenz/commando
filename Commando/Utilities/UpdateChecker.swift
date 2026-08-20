@@ -21,23 +21,29 @@ enum UpdateChecker {
                   let httpResponse = response as? HTTPURLResponse,
                   (200 ... 299).contains(httpResponse.statusCode),
                   let data,
-                  let updateInfo = UpdateInfoParser.parse(data),
-                  let remoteVersion = updateInfo.currentMacOS,
-                  let changeLog = updateInfo.currentMacOSChangeLog,
-                  isVersion(remoteVersion, greaterThan: localVersion()) else {
-                return
-            }
-
-            let message = decodeChangeLog(changeLog)
-            guard !message.isEmpty else {
-                return
-            }
-
-            guard dismissedVersionThisSession != remoteVersion else {
+                  let updateInfo = UpdateInfoParser.parse(data) else {
                 return
             }
 
             DispatchQueue.main.async {
+                enforceMinimumVersionIfNeeded(updateInfo)
+
+                guard !AppLock.isLocked,
+                      let remoteVersion = updateInfo.currentMacOS,
+                      let changeLog = updateInfo.currentMacOSChangeLog,
+                      isVersion(remoteVersion, greaterThan: localVersion()) else {
+                    return
+                }
+
+                let message = decodeChangeLog(changeLog)
+                guard !message.isEmpty else {
+                    return
+                }
+
+                guard dismissedVersionThisSession != remoteVersion else {
+                    return
+                }
+
                 showUpdateAvailable(
                     message: message,
                     remoteVersion: remoteVersion,
@@ -47,8 +53,28 @@ enum UpdateChecker {
         }.resume()
     }
 
-    private static func localVersion() -> String {
-        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "0"
+    static func enforceMinimumVersionIfNeeded(_ updateInfo: UpdateInfo) {
+        guard let minimumVersion = updateInfo.minimumVersionAllowed,
+              !minimumVersion.isEmpty,
+              isVersion(minimumVersion, greaterThan: localVersion()) else {
+            return
+        }
+
+        AppLock.lockForUpdate(
+            minimumVersion: minimumVersion,
+            updateURL: updateURL(updateInfo.macOSUrl)
+        )
+
+        showRequiredUpdate(
+            minimumVersion: minimumVersion,
+            remoteVersion: updateInfo.currentMacOS,
+            changeLog: updateInfo.currentMacOSChangeLog,
+            updateInfo: updateInfo
+        )
+    }
+
+    static func localVersion() -> String {
+        AppInfo.shortVersion
     }
 
     static func isVersion(_ remote: String, greaterThan local: String) -> Bool {
@@ -143,23 +169,46 @@ enum UpdateChecker {
             version: remoteVersion,
             message: message,
             updateURL: updateURL(for: updateInfo),
+            required: false,
             onLater: {
                 dismissedVersionThisSession = remoteVersion
             }
         )
     }
+
+    private static func showRequiredUpdate(
+        minimumVersion: String,
+        remoteVersion: String?,
+        changeLog: String?,
+        updateInfo: UpdateInfo
+    ) {
+        let versionLabel = remoteVersion ?? minimumVersion
+        let message = decodeChangeLog(changeLog ?? "").isEmpty
+            ? AppLock.updateRequiredMessage
+            : AppLock.updateRequiredMessage + "\n\n" + decodeChangeLog(changeLog ?? "")
+
+        UpdateWindowController.show(
+            version: versionLabel,
+            message: message,
+            updateURL: updateURL(for: updateInfo),
+            required: true,
+            onLater: {}
+        )
+    }
 }
 
-private struct UpdateInfo {
+struct UpdateInfo {
     let currentMacOS: String?
     let currentMacOSChangeLog: String?
     let macOSUrl: URL?
+    let minimumVersionAllowed: String?
 }
 
-private final class UpdateInfoParser: NSObject, XMLParserDelegate {
+final class UpdateInfoParser: NSObject, XMLParserDelegate {
     private var currentMacOS: String?
     private var currentMacOSChangeLog: String?
     private var macOSUrl: URL?
+    private var minimumVersionAllowed: String?
     private var currentText = ""
 
     static func parse(_ data: Data) -> UpdateInfo? {
@@ -175,7 +224,8 @@ private final class UpdateInfoParser: NSObject, XMLParserDelegate {
         return UpdateInfo(
             currentMacOS: parser.currentMacOS,
             currentMacOSChangeLog: parser.currentMacOSChangeLog,
-            macOSUrl: parser.macOSUrl
+            macOSUrl: parser.macOSUrl,
+            minimumVersionAllowed: parser.minimumVersionAllowed
         )
     }
 
@@ -208,6 +258,8 @@ private final class UpdateInfoParser: NSObject, XMLParserDelegate {
             currentMacOSChangeLog = trimmed
         case "macOSUrl":
             macOSUrl = URL(string: trimmed)
+        case "minimumVersionAllowed":
+            minimumVersionAllowed = trimmed
         default:
             break
         }

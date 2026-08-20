@@ -5,7 +5,8 @@ This guide covers building, notarizing, and stapling a Developer ID signed relea
 ## Prerequisites
 
 - Apple Developer Program membership
-- **Developer ID Application** certificate installed in your login keychain
+- **Developer ID Application** certificate installed in your login keychain (not Developer ID *Installer* — that is for `.pkg` files only)
+- **Developer ID provisioning profiles** for `com.manticoresw.commando` and `com.manticoresw.commando.loginitem` (the script can create these automatically; see Troubleshooting if export fails)
 - Xcode command line tools
 - An [app-specific password](https://appleid.apple.com) for notarization (not your Apple ID password)
 
@@ -15,17 +16,29 @@ Store notarization credentials in the keychain using a named profile:
 
 ```bash
 xcrun notarytool store-credentials "Commando-Notary" \
-  --apple-id "you@example.com" \
+  --apple-id "jordan@meddle.co.nz" \
   --team-id "5D3622Q6DB" \
   --password "@keychain:AC_PASSWORD"
 ```
 
-Replace:
+Replace `@keychain:AC_PASSWORD` with your app-specific password directly if you prefer not to use Keychain Access:
 
-- `you@example.com` with your Apple ID
-- `AC_PASSWORD` with a keychain item containing your app-specific password
+```bash
+xcrun notarytool store-credentials "Commando-Notary" \
+  --apple-id "jordan@meddle.co.nz" \
+  --team-id "5D3622Q6DB" \
+  --password "xxxx-xxxx-xxxx-xxxx"
+```
 
-To store the app-specific password in Keychain Access: create a new password item named `AC_PASSWORD`, then reference it as `@keychain:AC_PASSWORD` above.
+Or store the password in Keychain Access first:
+
+- Select the **login** keychain
+- File → **New Password Item**
+- **Keychain Item Name:** `AC_PASSWORD`
+- **Account Name:** your Apple ID (e.g. `jordan@meddle.co.nz`)
+- **Password:** the app-specific password from [appleid.apple.com](https://appleid.apple.com) (not your Apple ID login password)
+
+Then use `--password "@keychain:AC_PASSWORD"` in the `store-credentials` command above.
 
 Verify the profile was saved:
 
@@ -52,13 +65,13 @@ The script will:
 
 ## Output artifacts
 
-| Path | Description |
-|------|-------------|
-| `build/export/Commando.app` | Stapled, notarized app bundle |
-| `build/Commando.dmg` | Stapled, notarized disk image for distribution |
-| `build/Commando.xcarchive` | Xcode archive (intermediate) |
+| Path                        | Description                                    |
+| --------------------------- | ---------------------------------------------- |
+| `build/export/Commando.app` | Stapled, notarized app bundle                  |
+| `build/Commando.dmg`        | Stapled, notarized disk image for distribution |
+| `build/Commando.xcarchive`  | Xcode archive (intermediate)                   |
 
-Upload `build/Commando.dmg` to your download server.
+Upload `build/Commando.dmg` to your download server. You can rename the DMG after notarization and stapling (e.g. `commando-1.0.0.dmg`) without invalidating the ticket — only re-notarize if you change the contents.
 
 ## Configuration
 
@@ -90,6 +103,29 @@ codesign -dv --verbose=4 build/export/Commando.app
 On a clean Mac (or another user account), mount the DMG and confirm Gatekeeper accepts the app without a warning.
 
 ## Troubleshooting
+
+### Export failed: No signing certificate "Developer ID Application" found
+
+Install a **Developer ID Application** certificate from [Certificates](https://developer.apple.com/account/resources/certificates/list) (+ → Developer ID Application). Developer ID *Installer* cannot sign `.app` bundles.
+
+Verify:
+
+```bash
+security find-identity -v -p codesigning
+```
+
+You should see `Developer ID Application: … (5D3622Q6DB)`.
+
+### Export failed: No profiles for `com.manticoresw.commando` were found
+
+Sandboxed Mac apps need a **Developer ID** provisioning profile, not just the certificate. The notarize script passes `-allowProvisioningUpdates` so Xcode can create profiles automatically (requires network access and Apple Developer login).
+
+If that still fails, create profiles manually at [Profiles](https://developer.apple.com/account/resources/profiles/list):
+
+1. **+** → **Developer ID** → App ID `com.manticoresw.commando` → your Developer ID Application cert → Download → double-click to install
+2. Repeat for `com.manticoresw.commando.loginitem` (login item helper)
+
+Ensure the App ID has **App Sandbox** and **iCloud** (`iCloud.com.manticoresw.commando`) enabled under [Identifiers](https://developer.apple.com/account/resources/identifiers/list).
 
 ### Notarization rejected: unsigned or invalid embedded binary
 
