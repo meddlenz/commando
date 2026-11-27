@@ -17,8 +17,8 @@ public static class CommandStore
         {
         }
 
-        public static StoreException ICloudUnavailable { get; } = new(
-            "iCloud is not available. Sign in to iCloud in System Settings and try again.");
+        public static StoreException OneDriveUnavailable { get; } = new(
+            "OneDrive is not available. Sign in to OneDrive and try again.");
     }
 
     static readonly object Gate = new();
@@ -31,7 +31,7 @@ public static class CommandStore
     public static string? StorageDirectoryOverride { get; set; }
 
     public static bool IsCloudSyncEnabled =>
-        StorageDirectoryOverride == null && Preferences.ICloudSyncEnabled;
+        StorageDirectoryOverride == null && Preferences.OneDriveSyncEnabled;
 
     public static List<CommandSet> CommandSets
     {
@@ -90,7 +90,7 @@ public static class CommandStore
 
         if (enabled)
         {
-            var cloudPath = ActiveICloudFilePath();
+            var cloudPath = ActiveOneDriveFilePath();
             var localSets = Load(LocalFilePath()) ?? CommandSets;
             var cloudSets = Load(cloudPath) ?? new List<CommandSet>();
             List<CommandSet> merged;
@@ -108,7 +108,7 @@ public static class CommandStore
             }
 
             Write(merged, cloudPath);
-            Preferences.ICloudSyncEnabled = true;
+            Preferences.OneDriveSyncEnabled = true;
             lock (Gate)
             {
                 _cache = merged.Select(set => set.Clone()).ToList();
@@ -118,7 +118,7 @@ public static class CommandStore
         {
             var current = CommandSets;
             Write(current, LocalFilePath());
-            Preferences.ICloudSyncEnabled = false;
+            Preferences.OneDriveSyncEnabled = false;
             lock (Gate)
             {
                 _cache = current.Select(set => set.Clone()).ToList();
@@ -287,7 +287,7 @@ public static class CommandStore
 
     static string ActiveFilePath()
     {
-        if (IsCloudSyncEnabled && AppStoragePaths.ICloudCommandSetsFile is { } cloud)
+        if (IsCloudSyncEnabled && AppStoragePaths.OneDriveCommandSetsFile is { } cloud)
         {
             return cloud;
         }
@@ -295,9 +295,9 @@ public static class CommandStore
         return LocalFilePath();
     }
 
-    static string ActiveICloudFilePath()
+    static string ActiveOneDriveFilePath()
     {
-        return AppStoragePaths.ICloudCommandSetsFile ?? throw StoreException.ICloudUnavailable;
+        return AppStoragePaths.OneDriveCommandSetsFile ?? throw StoreException.OneDriveUnavailable;
     }
 
     static string LocalFilePath()

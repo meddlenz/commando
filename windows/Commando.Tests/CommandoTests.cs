@@ -305,6 +305,26 @@ public sealed class CommandoTests
     }
 
     [Fact]
+    public void CloudSyncErrorNamesOneDrive()
+    {
+        Assert.Contains("OneDrive is not available", CommandStore.StoreException.OneDriveUnavailable.Message);
+        Assert.DoesNotContain("iCloud", CommandStore.StoreException.OneDriveUnavailable.Message);
+    }
+
+    [Fact]
+    public void LegacyICloudSyncPreferenceStillEnablesOneDriveSync()
+    {
+        using var temp = new TempApp();
+        File.WriteAllText(Commando.Storage.Preferences.FilePath, """
+        {
+          "syncCommandSetsViaiCloud": true
+        }
+        """);
+        Commando.Storage.Preferences.ResetCache();
+        Assert.True(Commando.Storage.Preferences.OneDriveSyncEnabled);
+    }
+
+    [Fact]
     public void ImportMergeAndReplace()
     {
         using var temp = new TempApp();

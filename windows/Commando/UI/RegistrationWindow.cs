@@ -122,7 +122,7 @@ public sealed class RegistrationWindow : Window
     static (StackPanel Panel, TextBox Box) Field(string title)
     {
         var panel = new StackPanel { Margin = new Thickness(0, 8, 0, 0) };
-        panel.Children.Add(new TextBlock { Text = title, FontSize = 12, Foreground = UiKit.Secondary() });
+        panel.Children.Add(new TextBlock { Text = title, FontSize = 12, Foreground = System.Windows.Media.Brushes.Black });
         var box = new TextBox { Margin = new Thickness(0, 4, 0, 0), Padding = new Thickness(4, 3, 4, 3) };
         panel.Children.Add(box);
         return (panel, box);

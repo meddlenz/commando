@@ -138,11 +138,11 @@ public sealed class SettingsWindow : Window
     UIElement BuildCommandSets()
     {
         var stack = new StackPanel { Margin = new Thickness(16, 12, 16, 16) };
-        var cloud = new CheckBox { Content = "Sync via iCloud", IsChecked = CommandStore.IsCloudSyncEnabled };
+        var cloud = new CheckBox { Content = "Sync via OneDrive", IsChecked = CommandStore.IsCloudSyncEnabled };
         cloud.Checked += (_, _) => SetCloud(cloud, true);
         cloud.Unchecked += (_, _) => SetCloud(cloud, false);
         stack.Children.Add(cloud);
-        stack.Children.Add(Help("Keeps command sets up to date across devices using this iCloud account."));
+        stack.Children.Add(Help("Keeps command sets up to date across devices using this OneDrive account."));
         var row = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 12, 0, 0) };
         var import = new Button { Content = "Import", MinWidth = 80, Margin = new Thickness(0, 0, 8, 0), Padding = new Thickness(8, 4, 8, 4) };
         import.Click += (_, _) => ImportSets();

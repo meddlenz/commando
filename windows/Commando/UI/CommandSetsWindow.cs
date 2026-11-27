@@ -32,6 +32,7 @@ public sealed class CommandSetsWindow : Window
     readonly StackPanel _sessionsHost = new();
 
     readonly List<EditableSession> _sessions = new();
+    double _editorViewportWidth;
     Guid? _editingId;
     string? _validation;
     bool _suppressSelection;
@@ -204,9 +205,19 @@ public sealed class CommandSetsWindow : Window
         panel.Children.Add(_toolbar);
 
         _editorScroll.Visibility = Visibility.Collapsed;
+        _editorScroll.HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled;
         _editorScroll.VerticalScrollBarVisibility = ScrollBarVisibility.Auto;
+        _editorScroll.HorizontalAlignment = HorizontalAlignment.Stretch;
+        _editorScroll.VerticalAlignment = VerticalAlignment.Stretch;
+        _editorScroll.HorizontalContentAlignment = HorizontalAlignment.Stretch;
+        _editorScroll.VerticalContentAlignment = VerticalAlignment.Top;
         _editorScroll.Content = _editor;
-        panel.Children.Add(_editorScroll);
+        _editorScroll.SizeChanged += (_, _) => SyncEditorToViewport();
+        _editorScroll.ScrollChanged += (_, _) => SyncEditorToViewport();
+        var host = new Grid();
+        host.Children.Add(_editorScroll);
+        host.Children.Add(_empty);
+        panel.Children.Add(host);
 
         _empty.VerticalAlignment = VerticalAlignment.Center;
         _empty.HorizontalAlignment = HorizontalAlignment.Center;
@@ -239,8 +250,33 @@ public sealed class CommandSetsWindow : Window
         var create = new Button { Content = "Create Command Set", HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(0, 12, 0, 0), Padding = new Thickness(12, 4, 12, 4) };
         create.Click += (_, _) => StartCreating();
         _empty.Children.Add(create);
-        panel.Children.Add(_empty);
         return panel;
+    }
+
+    void SyncEditorToViewport()
+    {
+        var viewport = _editorScroll.ViewportWidth;
+        if (double.IsNaN(viewport) || viewport <= 1)
+        {
+            return;
+        }
+
+        // Ignore a one-scrollbar bounce so the form does not grow back under the bar.
+        if (_editorViewportWidth > 1
+            && viewport > _editorViewportWidth + 0.5
+            && viewport - _editorViewportWidth < SystemParameters.VerticalScrollBarWidth + 4)
+        {
+            return;
+        }
+
+        if (Math.Abs(viewport - _editorViewportWidth) < 0.5)
+        {
+            return;
+        }
+
+        _editorViewportWidth = viewport;
+        var width = Math.Max(0, viewport - _editor.Margin.Left - _editor.Margin.Right);
+        _editor.Width = width;
     }
 
     void BuildEditorChrome()
@@ -308,6 +344,10 @@ public sealed class CommandSetsWindow : Window
 
         _deleteButton.Content = "Delete Command Set";
         _deleteButton.Foreground = Brushes.Firebrick;
+        _deleteButton.Padding = new Thickness(8, 4, 8, 4);
+        _deleteButton.MinWidth = 80;
+        _deleteButton.VerticalAlignment = VerticalAlignment.Center;
+        _deleteButton.HorizontalAlignment = HorizontalAlignment.Left;
         _deleteButton.Click += (_, _) =>
         {
             if (_editingId != null)
@@ -315,17 +355,26 @@ public sealed class CommandSetsWindow : Window
                 Delete(_editingId.Value);
             }
         };
-        DockPanel.SetDock(_deleteButton, Dock.Left);
-        _toolbar.Children.Add(_deleteButton);
-        var actions = new StackPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(20, 12, 20, 12) };
+        var toolbarRow = new Grid { Margin = new Thickness(20, 12, 20, 12) };
+        toolbarRow.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        toolbarRow.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        Grid.SetColumn(_deleteButton, 0);
+        toolbarRow.Children.Add(_deleteButton);
+        var actions = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            VerticalAlignment = VerticalAlignment.Center,
+        };
         var cancel = new Button { Content = "Cancel", MinWidth = 80, Margin = new Thickness(0, 0, 8, 0), Padding = new Thickness(8, 4, 8, 4) };
         cancel.Click += (_, _) => CancelEditing();
         var save = new Button { Content = "Save", MinWidth = 80, IsDefault = true, Padding = new Thickness(8, 4, 8, 4) };
         save.Click += (_, _) => Save();
         actions.Children.Add(cancel);
         actions.Children.Add(save);
-        DockPanel.SetDock(actions, Dock.Right);
-        _toolbar.Children.Add(actions);
+        Grid.SetColumn(actions, 1);
+        toolbarRow.Children.Add(actions);
+        _toolbar.Children.Add(toolbarRow);
     }
 
     static StackPanel Section(string title, string help, UIElement content)
@@ -459,6 +508,7 @@ public sealed class CommandSetsWindow : Window
         _editorScroll.Visibility = Visibility.Visible;
         _toolbar.Visibility = Visibility.Visible;
         _deleteButton.Visibility = _editingId == null ? Visibility.Collapsed : Visibility.Visible;
+        SyncEditorToViewport();
         UpdateSshOptions();
         RebuildSessions();
         UpdateBanner();
@@ -684,12 +734,12 @@ public sealed class CommandSetsWindow : Window
 
             if (_sessions.Count > 1)
             {
-                var header = new Grid { Margin = new Thickness(0, 0, 0, 8) };
+                var header = new Grid { Margin = new Thickness(0, 0, 0, 8), HorizontalAlignment = HorizontalAlignment.Stretch };
                 header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-                header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 0 });
                 header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
                 var label = new TextBlock { Text = "Session " + (index + 1), Foreground = UiKit.Secondary(), VerticalAlignment = VerticalAlignment.Center, Margin = new Thickness(0, 0, 8, 0) };
-                var name = new TextBox { Text = session.Name, Padding = new Thickness(4, 3, 4, 3) };
+                var name = new TextBox { Text = session.Name, Padding = new Thickness(4, 3, 4, 3), MinWidth = 0, HorizontalAlignment = HorizontalAlignment.Stretch };
                 name.TextChanged += (_, _) => session.Name = name.Text;
                 var remove = new Button { Content = "Remove", Foreground = Brushes.Firebrick, Margin = new Thickness(8, 0, 0, 0), Background = Brushes.Transparent, BorderThickness = new Thickness(0), Cursor = Cursors.Hand };
                 var sessionId = session.Id;
@@ -730,7 +780,7 @@ public sealed class CommandSetsWindow : Window
         }
 
         _sessionsHost.Children.Add(new Separator { Margin = new Thickness(0, 12, 0, 8) });
-        var addSession = LinkButton("\uE8C6", "Add Parallel Session");
+        var addSession = LinkButton("\uE90C", "Add Parallel Session");
         addSession.HorizontalAlignment = HorizontalAlignment.Center;
         addSession.Click += (_, _) =>
         {
@@ -755,9 +805,9 @@ public sealed class CommandSetsWindow : Window
 
     UIElement BuildStepRow(EditableSession session, EditableStep step, int number)
     {
-        var grid = new Grid { Margin = new Thickness(0, 4, 0, 0) };
+        var grid = new Grid { Margin = new Thickness(0, 4, 0, 0), HorizontalAlignment = HorizontalAlignment.Stretch };
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(28) });
-        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star), MinWidth = 0 });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.Children.Add(new TextBlock
         {
@@ -773,6 +823,8 @@ public sealed class CommandSetsWindow : Window
             Text = step.Text,
             FontFamily = new FontFamily("Consolas"),
             Padding = new Thickness(4, 3, 4, 3),
+            MinWidth = 0,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
         };
         var delete = new Button
         {

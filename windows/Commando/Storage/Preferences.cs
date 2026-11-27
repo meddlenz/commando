@@ -5,7 +5,8 @@ namespace Commando.Storage;
 public static class Preferences
 {
     const string ExampleRemovedKey = "exampleCommandSetRemoved";
-    const string ICloudSyncKey = "syncCommandSetsViaiCloud";
+    const string OneDriveSyncKey = "syncCommandSetsViaOneDrive";
+    const string LegacyICloudSyncKey = "syncCommandSetsViaiCloud";
     const string TerminalPathKey = "terminalAppPath";
     const string MenuBarIconKey = "menuBarIcon";
     const string HideDockIconKey = "hideDockIcon";
@@ -25,10 +26,14 @@ public static class Preferences
         set => SetBool(ExampleRemovedKey, value);
     }
 
-    public static bool ICloudSyncEnabled
+    public static bool OneDriveSyncEnabled
     {
-        get => GetBool(ICloudSyncKey);
-        set => SetBool(ICloudSyncKey, value);
+        get => HasKey(OneDriveSyncKey) ? GetBool(OneDriveSyncKey) : GetBool(LegacyICloudSyncKey);
+        set
+        {
+            SetBool(OneDriveSyncKey, value);
+            RemoveKey(LegacyICloudSyncKey);
+        }
     }
 
     public static string? TerminalAppPath
@@ -62,6 +67,26 @@ public static class Preferences
         lock (Gate)
         {
             _values = null;
+        }
+    }
+
+    static bool HasKey(string key)
+    {
+        lock (Gate)
+        {
+            return EnsureLoaded() && _values!.ContainsKey(key);
+        }
+    }
+
+    static void RemoveKey(string key)
+    {
+        lock (Gate)
+        {
+            EnsureLoaded();
+            if (_values!.Remove(key))
+            {
+                Save();
+            }
         }
     }
 

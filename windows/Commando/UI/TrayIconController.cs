@@ -33,6 +33,7 @@ sealed class TrayIconController : IDisposable
         Microsoft.Win32.SystemEvents.UserPreferenceChanged += OnUserPreferenceChanged;
         ApplyIcon();
         RebuildMenu();
+        TrayIconPromotion.PromoteCurrentProcess();
     }
 
     public void ApplyIcon()
