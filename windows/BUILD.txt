@@ -1,0 +1,12 @@
+Commando for Windows
+
+Requires the .NET 8 SDK (the desktop runtime is included with the SDK).
+
+Build and test:
+  dotnet build windows/Commando.sln
+  dotnet test windows/Commando.sln
+
+Run:
+  dotnet run --project windows/Commando/Commando.csproj
+
+Command sets are stored in %APPDATA%\Commando\command-sets.json using the same JSON document as the Mac app. Import and export use that file. Commands run through Git Bash when it is installed, inside the terminal chosen in Settings. The default terminal is Windows Terminal.
